@@ -1,0 +1,21 @@
+* Add Confidence Interval to plot.
+* Change self.plot() name to self.lineplot()?
+* log10 transformation FPKM values
+
+* Move plots functions in another py file?
+* Wondering if z_score calc, fusion_gene_id and only_FPKM should be only one function
+
+* Add search isoforms ID option
+* Add barplot
+
+* Compare self.selected between two different experiments
+* plot genes detected/significant as different lines
+
+* Add Volcano plot
+
+* Add clustering function
+
+* Use cummeRbund database instead of tables
+* show replicates on lineplot
+* Box plot of FPKM distributions for individual conditions #see cummeRbund
+* Density plot of individual conditions #see cummeRbund
