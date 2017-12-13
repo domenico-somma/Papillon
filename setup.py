@@ -17,7 +17,7 @@ setup(
     author='Domenico Somma',
     author_email='domenico.somma@glasgow.ac.uk',
     license='Mozilla Public License 2.0',
-    url='https://github.com/domenico-somma/CummerPund/,
+    url='https://github.com/domenico-somma/Papillon/',
     long_description=open('README.txt').read(),
     install_requires=[
         "pandas >= 0.17.1",
