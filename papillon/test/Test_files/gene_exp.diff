@@ -1,6 +1,6 @@
 test_id	gene_id	gene	locus	sample_1	sample_2	status	value_1	value_2	log2(fold_change)	test_stat	p_value	q_value	significant
-IL6	IL6	IL6	chr7:22727146-22732002	Sample 1	Sample 2	NOTEST	0	1	inf	0	1	0.01	yes
 IL6	IL6	IL6	chr7:22727146-22732002	Sample 1	Sample 3	NOTEST	0	0.029063	inf	0	1	1	no
+IL6	IL6	IL6	chr7:22727146-22732002	Sample 1	Sample 2	NOTEST	0	1	inf	0	1	0.01	yes
 IL6	IL6	IL6	chr7:22727146-22732002	Sample 2	Sample 3	NOTEST	1	0.029063	inf	0	1	1	no
 IL6	IL6	IL6	chr7:22727146-22732002	Sample 1	Sample 4	NOTEST	0	0.0168004	inf	0	1	1	no
 IL6	IL6	IL6	chr7:22727146-22732002	Sample 2	Sample 4	NOTEST	1	0.0168004	inf	0	1	1	no
