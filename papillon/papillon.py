@@ -544,7 +544,7 @@ class papillon:
         z_score - True/False calculate the z-score normalization
         export - True/False whether want or not export image
         df - accept a dataframe different from self.selected
-        **options - all the options accepted by seaborn.clustermap
+        **options - all the options accepted by seaborn.factorplot
         """
         if type(df) == pd.DataFrame:
             pass
