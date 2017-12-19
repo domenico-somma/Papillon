@@ -11,7 +11,7 @@ except ImportError:
 
 setup(
     name='papillon',
-    version='0.0.6',
+    version='0.0.7',
     packages=['papillon',],
     description='A Python module to read and plot Galaxy RNA-seq data',
     author='Domenico Somma',
