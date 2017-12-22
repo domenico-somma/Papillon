@@ -1,0 +1,148 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: package papillon</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>papillon</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/lab/Papillon/papillon/__init__.py">/home/lab/Papillon/papillon/__init__.py</a></font></td></tr></table>
+    <p><tt>A&nbsp;python&nbsp;version&nbsp;of&nbsp;CummeRbund<br>
+to&nbsp;read&nbsp;and&nbsp;plot&nbsp;Galaxy&nbsp;RNA-seq&nbsp;data</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Package Contents</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="papillon.papillon.html">papillon</a><br>
+</td><td width="25%" valign=top></td><td width="25%" valign=top></td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="papillon.html#papillon">papillon</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="papillon">class <strong>papillon</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="papillon-__init__"><strong>__init__</strong></a>(self, path, drop_comparison=[])</dt><dd><tt>read&nbsp;cummeRbund&nbsp;files&nbsp;and&nbsp;return:<br>
+self.<strong>path</strong>&nbsp;-&nbsp;files&nbsp;path<br>
+self.<strong>samples</strong>&nbsp;-&nbsp;samples&nbsp;found<br>
+self.<strong>comparison</strong>&nbsp;-&nbsp;comparisons&nbsp;found<br>
+self.<strong>genes_detect</strong>&nbsp;-&nbsp;dataframe&nbsp;of&nbsp;genes&nbsp;detected<br>
+self.<strong>genes_significant</strong>&nbsp;-&nbsp;dataframe&nbsp;of&nbsp;genes&nbsp;significant<br>
+self.<strong>isoforms_detect</strong>&nbsp;-&nbsp;dataframe&nbsp;of&nbsp;isoforms&nbsp;detected&nbsp;<br>
+self.<strong>isoforms_significant</strong>&nbsp;-&nbsp;dataframe&nbsp;of&nbsp;isoforms&nbsp;significant&nbsp;<br>
+expressed</tt></dd></dl>
+
+<dl><dt><a name="papillon-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="papillon-change_order"><strong>change_order</strong></a>(self, new_order)</dt><dd><tt>Change&nbsp;the&nbsp;samples&nbsp;order</tt></dd></dl>
+
+<dl><dt><a name="papillon-dropComparison"><strong>dropComparison</strong></a>(self, comparison)</dt><dd><tt>Drop&nbsp;Comparison&nbsp;(str)&nbsp;or&nbsp;list&nbsp;of&nbsp;comparisons&nbsp;and&nbsp;re-calculate&nbsp;<br>
+df_significant</tt></dd></dl>
+
+<dl><dt><a name="papillon-get_gene"><strong>get_gene</strong></a>(self, genelist=None, comparison=None, sign=None, export=False)</dt><dd><tt>This&nbsp;function&nbsp;select&nbsp;genes.&nbsp;Create&nbsp;self.<strong>selected</strong>&nbsp;and&nbsp;<br>
+self.<strong>type_selected</strong>="gene".<br>
+genelist&nbsp;-&nbsp;accept&nbsp;string&nbsp;(gene&nbsp;name),&nbsp;list&nbsp;of&nbsp;gene&nbsp;names&nbsp;or&nbsp;file<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;with&nbsp;a&nbsp;list&nbsp;of&nbsp;gene&nbsp;name<br>
+comparison&nbsp;-&nbsp;accept&nbsp;only&nbsp;1&nbsp;comparison&nbsp;as&nbsp;str&nbsp;(already&nbsp;present&nbsp;in&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;data)<br>
+sign&nbsp;-&nbsp;usable&nbsp;in&nbsp;combination&nbsp;with&nbsp;comparison,&nbsp;accept&nbsp;either&nbsp;"&gt;"&nbsp;or&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"&lt;"<br>
+export&nbsp;-&nbsp;True/False&nbsp;whether&nbsp;want&nbsp;or&nbsp;not&nbsp;export&nbsp;the&nbsp;dataframe&nbsp;of&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;selected&nbsp;genes</tt></dd></dl>
+
+<dl><dt><a name="papillon-get_isoform"><strong>get_isoform</strong></a>(self, genelist=None, comparison=None, sign=None, export=False, show_dup=False)</dt><dd><tt>This&nbsp;function&nbsp;select&nbsp;isoforms.&nbsp;Create&nbsp;self.<strong>selected</strong>&nbsp;and&nbsp;<br>
+self.<strong>type_selected</strong>="isoform"&nbsp;<br>
+genelist&nbsp;-&nbsp;accept&nbsp;string&nbsp;(gene&nbsp;name),&nbsp;list&nbsp;of&nbsp;gene&nbsp;names&nbsp;or&nbsp;file<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;with&nbsp;a&nbsp;list&nbsp;of&nbsp;gene&nbsp;name<br>
+comparison&nbsp;-&nbsp;accept&nbsp;only&nbsp;1&nbsp;comparison&nbsp;as&nbsp;str&nbsp;(already&nbsp;present&nbsp;in&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;data)<br>
+sign&nbsp;-&nbsp;usable&nbsp;in&nbsp;combination&nbsp;with&nbsp;comparison,&nbsp;accept&nbsp;either&nbsp;"&gt;"&nbsp;or&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"&lt;"<br>
+export&nbsp;-&nbsp;True/False&nbsp;whether&nbsp;want&nbsp;or&nbsp;not&nbsp;export&nbsp;the&nbsp;dataframe&nbsp;of&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;selected&nbsp;genes<br>
+show_dup&nbsp;-&nbsp;True/False&nbsp;whether&nbsp;want&nbsp;or&nbsp;not&nbsp;highlight&nbsp;duplicated<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;isoforms&nbsp;for&nbsp;the&nbsp;same&nbsp;gene</tt></dd></dl>
+
+<dl><dt><a name="papillon-heatmap"><strong>heatmap</strong></a>(self, z_score=True, col_cluster=False, method='complete', cmap='seismic', export=False, **options)</dt><dd><tt>Generate&nbsp;heatmap&nbsp;using&nbsp;selected&nbsp;genes/isoforms<br>
+z_score&nbsp;-&nbsp;True/False&nbsp;whether&nbsp;want&nbsp;or&nbsp;not&nbsp;apply&nbsp;z-score&nbsp;normalization<br>
+col_cluster&nbsp;-&nbsp;True/False&nbsp;whether&nbsp;want&nbsp;or&nbsp;not&nbsp;cluster&nbsp;the&nbsp;samples<br>
+method&nbsp;-&nbsp;clustering&nbsp;algorithm&nbsp;-&nbsp;default&nbsp;is&nbsp;complete-linkage<br>
+cmap&nbsp;-&nbsp;map&nbsp;color<br>
+export&nbsp;-&nbsp;True/False&nbsp;whether&nbsp;want&nbsp;or&nbsp;not&nbsp;export&nbsp;the&nbsp;dataframe&nbsp;of&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;selected&nbsp;genes<br>
+**options&nbsp;-&nbsp;all&nbsp;the&nbsp;options&nbsp;accepted&nbsp;by&nbsp;seaborn.clustermap<br>
+default&nbsp;metric&nbsp;is&nbsp;euclidean.</tt></dd></dl>
+
+<dl><dt><a name="papillon-onlyFPKM"><strong>onlyFPKM</strong></a>(self, return_as, **option)</dt><dd><tt>Return&nbsp;a&nbsp;DataFrame&nbsp;with&nbsp;only&nbsp;FPKM&nbsp;columns,&nbsp;<br>
+return&nbsp;as:&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"df"&nbsp;-&nbsp;pandas&nbsp;DataFrame<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"array"&nbsp;-&nbsp;numpy&nbsp;array<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"gene&nbsp;name"&nbsp;-&nbsp;pandas&nbsp;DataFrame&nbsp;containing&nbsp;gene&nbsp;names<br>
+It&nbsp;uses&nbsp;self.<strong>selected</strong>,&nbsp;or&nbsp;an&nbsp;extra_df.</tt></dd></dl>
+
+<dl><dt><a name="papillon-plot"><strong>plot</strong></a>(self, title='', legend=True, z_score=False, export=False, df=None, size=10, ci=None, **option)</dt><dd><tt>LinePlot&nbsp;a&nbsp;selected&nbsp;dataframe&nbsp;of&nbsp;genes.&nbsp;Max&nbsp;number&nbsp;of&nbsp;genes&nbsp;200<br>
+title&nbsp;-&nbsp;accept&nbsp;a&nbsp;string&nbsp;as&nbsp;title&nbsp;of&nbsp;the&nbsp;plot<br>
+legend&nbsp;-&nbsp;True/False&nbsp;show&nbsp;the&nbsp;legend<br>
+z_score&nbsp;-&nbsp;True/False&nbsp;calculate&nbsp;the&nbsp;z-score&nbsp;normalization<br>
+export&nbsp;-&nbsp;True/False&nbsp;whether&nbsp;want&nbsp;or&nbsp;not&nbsp;export&nbsp;image<br>
+df&nbsp;-&nbsp;accept&nbsp;a&nbsp;dataframe&nbsp;different&nbsp;from&nbsp;self.<strong>selected</strong><br>
+**options&nbsp;-&nbsp;all&nbsp;the&nbsp;options&nbsp;accepted&nbsp;by&nbsp;seaborn.factorplot</tt></dd></dl>
+
+<dl><dt><a name="papillon-search"><strong>search</strong></a>(self, word, where, how='table', export=False)</dt><dd><tt>search&nbsp;among&nbsp;genes/isoforms&nbsp;names&nbsp;in&nbsp;detected&nbsp;and&nbsp;significant<br>
+word&nbsp;-&nbsp;accept&nbsp;a&nbsp;str&nbsp;to&nbsp;search&nbsp;among&nbsp;the&nbsp;gene&nbsp;names<br>
+where&nbsp;-&nbsp;accept:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"genes_detected"&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"genes_significant"&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"isoforms_detected"<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"isoforms_significant"<br>
+&nbsp;<br>
+how&nbsp;-&nbsp;accept:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"table"&nbsp;return&nbsp;the&nbsp;dataframe&nbsp;with&nbsp;the&nbsp;genes&nbsp;found<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"list"&nbsp;return&nbsp;a&nbsp;list&nbsp;of&nbsp;names,&nbsp;no&nbsp;duplicates<br>
+&nbsp;&nbsp;&nbsp;&nbsp;"selected"&nbsp;put&nbsp;the&nbsp;genes&nbsp;found&nbsp;among&nbsp;the&nbsp;differential&nbsp;expressed&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;genes&nbsp;in&nbsp;self.<strong>selected</strong>&nbsp;(to&nbsp;plot),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;working&nbsp;only&nbsp;with&nbsp;where="significant"</tt></dd></dl>
+
+<dl><dt><a name="papillon-selected_exist"><strong>selected_exist</strong></a>(self, remove=False)</dt><dd><tt>Check&nbsp;if&nbsp;self.<strong>selected</strong>&nbsp;exists</tt></dd></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-read_db"><strong>read_db</strong></a>(path, drop_comparison=[])</dt><dd><tt>Read&nbsp;the&nbsp;cummeRbund&nbsp;Database.<br>
+path&nbsp;-&nbsp;accept&nbsp;a&nbsp;str&nbsp;with&nbsp;the&nbsp;folder&nbsp;path,&nbsp;containing&nbsp;the&nbsp;cummeRbund&nbsp;files<br>
+drop_comparison&nbsp;-&nbsp;drop&nbsp;comparison&nbsp;(str)&nbsp;or&nbsp;list&nbsp;of&nbsp;comparisons&nbsp;and&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;re-calculate&nbsp;significant&nbsp;genes/isoforms</tt></dd></dl>
+</td></tr></table>
+</body></html>
