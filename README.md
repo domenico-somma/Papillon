@@ -4,6 +4,11 @@ A python alternative to [cummeRbund](http://compbio.mit.edu/cummeRbund/) to read
 ![Preview](https://user-images.githubusercontent.com/34346930/34152979-4c3dae42-e4a8-11e7-9259-005a016edb53.png)
 
 [![PyPI version](https://badge.fury.io/py/papillon.svg)](https://pypi.python.org/pypi/papillon)
+[![Python3](https://img.shields.io/badge/python-3-blue.svg)]()
+[![Pandas](https://img.shields.io/badge/python%20module-pandas-blue.svg)]()
+[![Seaborn](https://img.shields.io/badge/python%20module-seaborn-blue.svg)]()
+
+
 
 ## Installation
 
