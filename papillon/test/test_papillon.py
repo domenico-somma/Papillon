@@ -17,9 +17,10 @@ import unittest
 # from PIL import Image
 
 os.chdir('..')
+os.chdir('..')
 import papillon as pp
 
-os.chdir('test')
+os.chdir('papillon/test')
 path="Test_files"
 test=pp.read_db(path)
 

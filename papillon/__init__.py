@@ -549,6 +549,7 @@ class papillon:
         if type(df) == pd.DataFrame:
             pass
         elif df is None:
+            self.selected_exist()
             df = self.selected.copy()
         else:
             raise Exception("df should be a pandas df")
