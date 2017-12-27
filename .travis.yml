@@ -3,5 +3,6 @@
     - "3.6"
   install:
     - pip install pandas
+    - pip install seaborn
   script:
     - pytest
