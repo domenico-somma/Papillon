@@ -6,7 +6,7 @@
     - pip install seaborn
     - pip install codecov
   before_script:
-    - cd papillon/test/
+    - cd test
   script:
     - coverage run test_papillon.py
   after_success:
