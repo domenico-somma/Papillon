@@ -6,6 +6,6 @@
     - pip install seaborn
     - pip install codecov
   script:
-    - pytest
+    - ptest --cov=./
   after_success:
     - codecov
