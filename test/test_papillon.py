@@ -4,11 +4,11 @@
 """
 
 # TO DO test images (plot/heatmap) (by hash?)
-# queue ?
 # TO DO test exception
 # TO DO test export
 
 import os
+import sys
 import pandas as pd
 import numpy
 from scipy.stats import zscore
@@ -16,8 +16,8 @@ import unittest
 # import imagehash
 # from PIL import Image
 
-os.chdir('..')
-os.chdir('..')
+sys.path.append(os.path.abspath(os.path.join('..')))
+
 import papillon as pp
 
 path_to_current_file = os.path.realpath(__file__)
