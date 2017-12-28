@@ -20,7 +20,10 @@ os.chdir('..')
 os.chdir('..')
 import papillon as pp
 
-os.chdir('papillon/test')
+path_to_current_file = os.path.realpath(__file__)
+current_directory = os.path.dirname(path_to_current_file)
+os.chdir(current_directory)
+
 path="Test_files"
 test=pp.read_db(path)
 
