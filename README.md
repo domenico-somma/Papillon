@@ -7,6 +7,7 @@ A python alternative to [cummeRbund](http://compbio.mit.edu/cummeRbund/) to read
 [![Python3](https://img.shields.io/badge/python-3-blue.svg)](https://www.python.org/)
 [![Pandas](https://img.shields.io/badge/python%20module-pandas-blue.svg)](https://pandas.pydata.org/)
 [![Seaborn](https://img.shields.io/badge/python%20module-seaborn-blue.svg)](https://seaborn.pydata.org/)
+[![Build Status](https://travis-ci.org/domenico-somma/Papillon.svg?branch=master)](https://travis-ci.org/domenico-somma/Papillon)
 
 
 
