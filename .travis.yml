@@ -4,5 +4,10 @@
   install:
     - pip install pandas
     - pip install seaborn
+    - pip install codecov
+  before_script:
+    - cd test
   script:
-    - pytest
+    - coverage run test_papillon.py
+  after_success:
+    - codecov
