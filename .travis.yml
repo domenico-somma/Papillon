@@ -4,5 +4,8 @@
   install:
     - pip install pandas
     - pip install seaborn
+    - pip install codecov
   script:
     - pytest
+  after_success:
+    - codecov
