@@ -1,3 +1,4 @@
+* Improve test coverage
 * Add Confidence Interval to plot.
 * log10 transformation FPKM values
 * Add search isoforms ID option
