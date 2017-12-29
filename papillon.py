@@ -7,8 +7,11 @@ import os
 import pandas as pd
 import seaborn as sns
 from distutils.version import LooseVersion
-#from IPython import get_ipython
-#get_ipython().run_line_magic('matplotlib', 'inline')
+try:
+    from IPython import get_ipython
+    get_ipython().run_line_magic('matplotlib', 'inline')
+except:
+    pass
 
 if LooseVersion(pd.__version__) < LooseVersion("0.17.1"):
     raise Exception("Pandas >= 0.17.1 required")
@@ -75,10 +78,10 @@ def read_db(path, drop_comparison=[]):
     drop_comparison - drop comparison (str) or list of comparisons and 
                       re-calculate significant genes/isoforms
     """
-    return papillon(path, drop_comparison)
+    return Papillon(path, drop_comparison)
 
 
-class papillon:
+class Papillon:
     def __init__(self, path, drop_comparison=[]):
         """
         read cummeRbund files and return:

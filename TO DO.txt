@@ -13,7 +13,7 @@
 
 * Add clustering function
 
-* Use cummeRbund database instead of tables
+* Use cummeRbund database instead of tables. will be slower?
 * show replicates on lineplot
 * Box plot of FPKM distributions for individual conditions #see cummeRbund
 * Density plot of individual conditions #see cummeRbund

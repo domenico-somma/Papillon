@@ -4,15 +4,12 @@
 @author: domenico.somma@glasgow.ac.uk
 """
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='papillon',
     version='0.0.7',
-    packages=['papillon',],
+    py_modules=['papillon'],
     description='A Python module to read and plot Galaxy RNA-seq data',
     author='Domenico Somma',
     author_email='domenico.somma@glasgow.ac.uk',
