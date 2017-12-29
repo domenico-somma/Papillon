@@ -223,6 +223,25 @@ class papillon_Test(unittest.TestCase):
         b=[0.016800, 0.0, 0.0, 0.0]
         self.failUnlessAlmostEqual(a[0],b[0], places=0)
         
+        #testing remove_FPKM_name
+        df=test.onlyFPKM("df",extra_df=extra_df, remove_FPKM_name=True)
+        self.assertTrue(type(df)==pd.DataFrame)
+        self.assertEqual(len(df),4)
+        self.assertEqual(len(df.columns),4)
+        self.assertEqual(list(df.columns),test.samples)
+        self.assertEqual(df.index[0],"NM_000600.3")
+        self.assertEqual(df.index[-1],"NM_032965.4")
+        
+        df=test.onlyFPKM("gene name",extra_df=extra_df, remove_FPKM_name=True)
+        self.assertTrue(type(df)==pd.DataFrame)
+        self.assertEqual(len(df),4)
+        self.assertEqual(len(df.columns),5)
+        self.assertEqual(list(df.columns[1:]),test.samples)
+        self.assertEqual(df.index[0],"NM_000600.3")
+        self.assertEqual(df["gene_short_name"][0],"IL6")
+        self.assertEqual(df.index[-1],"NM_032965.4")
+        self.assertEqual(df["gene_short_name"][-1],"CCL15")
+        
         # Final        
         test.get_isoform()
         self.assertEqual(len(test.selected),5)
