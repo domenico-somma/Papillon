@@ -5,4 +5,4 @@ Papillon main developers:
 Contributors:
 
 * Emma Smith 
-  * for Beta testing
+  * for suggestions and Beta testing
