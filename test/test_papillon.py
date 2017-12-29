@@ -27,6 +27,7 @@ os.chdir(current_directory)
 path="Test_files"
 test=pp.read_db(path)
 
+
 class papillon_Test(unittest.TestCase):
     def test_functions_FPKM(self):
         self.assertEqual(pp._FPKM("ciao"),"ciao_FPKM")
@@ -47,7 +48,9 @@ class papillon_Test(unittest.TestCase):
     def test_read_db(self):
         samples_test=['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']
         self.assertTrue(test.samples==samples_test)
-        comparison_test=['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']
+        comparison_test=['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 
+                         'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 
+                         'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']
         self.assertTrue(test.comparison==comparison_test)
         self.assertEqual(len(test.genes_detect),5)
         self.assertEqual(len(test.genes_significant),3)
@@ -58,6 +61,8 @@ class papillon_Test(unittest.TestCase):
         c=len(test.isoforms_detect.columns)
         d=len(test.isoforms_significant.columns)
         self.assertTrue(a==b and b==c and c==d and d==18)
+        printable="Samples: ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']\nComparison: ['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']\nGenes Detected: 5\nGenes differential expressed: 3\nIsoform Detected: 28\nIsoform differential expressed: 5\n5 isoform selected\n"
+        self.assertTrue(test.__str__()==printable)
 
     def test_get_gene(self):
         test.get_gene()
@@ -336,12 +341,26 @@ class papillon_Test(unittest.TestCase):
             df1=test2.genes_significant.all()
             df2=test3.genes_significant.all()
             self.assertTrue(df1.all()==df2.all())
+
+        def multidrop(comp):
+            test2=pp.read_db(path)
+            test3=pp.read_db(path)
+            test2.dropComparison(comp)
+            for c in comp:
+                test3.dropComparison(c)
+            df1=test2.genes_significant.all()
+            df2=test3.genes_significant.all()
+            self.assertTrue(df1.all()==df2.all())
+    
         drop("Sample 1_vs_Sample 2")
         drop("Sample 1_vs_Sample 3")
         drop("Sample 1_vs_Sample 4")
         drop("Sample 2_vs_Sample 3")
         drop("Sample 2_vs_Sample 4")
         drop("Sample 3_vs_Sample 4")
+        multidrop(["Sample 1_vs_Sample 2","Sample 1_vs_Sample 3"])
+        multidrop(["Sample 1_vs_Sample 2","Sample 3_vs_Sample 4"])
+        multidrop(["Sample 1_vs_Sample 4","Sample 2_vs_Sample 4","Sample 2_vs_Sample 3"])
     
     def test_change_samples_order(self):
         test.change_order(["Sample 4","Sample 3","Sample 2","Sample 1"])
@@ -413,3 +432,4 @@ class papillon_Test(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+    print(test)
