@@ -7,12 +7,16 @@
 # TO DO test export
 
 import os
+import matplotlib as mpl
+if os.environ.get('DISPLAY','') == '':
+    print('no display found. Using non-interactive Agg backend')
+    mpl.use('Agg')
+import seaborn as sns
 import sys
 import pandas as pd
 import numpy
 from scipy.stats import zscore
 import unittest
-import seaborn as sns
 import imagehash
 from PIL import Image
 
