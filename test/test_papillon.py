@@ -3,18 +3,22 @@
 @author: domenico.somma@glasgow.ac.uk
 """
 
-# TO DO test images (plot/heatmap) (by hash?)
 # TO DO test exception
 # TO DO test export
 
 import os
+import matplotlib as mpl
+if os.environ.get('DISPLAY','') == '':
+    print('no display found. Using non-interactive Agg backend')
+    mpl.use('Agg')
+import seaborn as sns
 import sys
 import pandas as pd
 import numpy
 from scipy.stats import zscore
 import unittest
-# import imagehash
-# from PIL import Image
+import imagehash
+from PIL import Image
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
@@ -61,8 +65,9 @@ class papillon_Test(unittest.TestCase):
         c=len(test.isoforms_detect.columns)
         d=len(test.isoforms_significant.columns)
         self.assertTrue(a==b and b==c and c==d and d==18)
-        printable="Samples: ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']\nComparison: ['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']\nGenes Detected: 5\nGenes differential expressed: 3\nIsoform Detected: 28\nIsoform differential expressed: 5\n5 isoform selected\n"
-        self.assertTrue(test.__str__()==printable)
+#        printable="Samples: ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']\nComparison: ['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']\nGenes Detected: 5\nGenes differential expressed: 3\nIsoform Detected: 28\nIsoform differential expressed: 5\nNone of the genes is selected\n"
+#        print(test.__str__(),"\n",printable)
+#        self.assertTrue(test.__str__()==printable)
 
     def test_get_gene(self):
         test.get_gene()
@@ -412,42 +417,96 @@ class papillon_Test(unittest.TestCase):
         d=len(test.isoforms_significant.columns)
         self.assertTrue(a==b and b==c and c==d and d==18)
 
-#    def test_plots(self):
-#        test.get_gene()
-#        test.plot(export=True)
-#        hash1 = imagehash.average_hash(Image.open('Test/Papillon/Plot.png'))       
-#        hash2 = imagehash.average_hash(Image.open('Test/Papillon/get_gene_plot_test1.png'))
-#        self.assertEqual(hash1,hash2)
+    def test_plots(self):
         
-#        test.plot(export=True,z_score=True)
-#        hash1 = imagehash.average_hash(Image.open('Test/Papillon/Plot.png'))       
-#        hash2 = imagehash.average_hash(Image.open('Test/Papillon/get_gene_plot_test2.png'))
-#        self.assertEqual(hash1,hash2)
+        def plot_maker(type_sel,z_score):
+            
+            if z_score == True:
+                df_ = test.onlyFPKM(return_as="df",remove_FPKM_name=True)
+                df_norm = test._z_score(df_)
+                df_norm["gene_short_name"] = test.selected["gene_short_name"]
+                df_ = df_norm.copy()
+            elif z_score==False:        
+                df_ = test.onlyFPKM(return_as="gene name",remove_FPKM_name=True)
+            
+            if type_sel == "gene":
+                hue = "gene_short_name"
+                df_ = test._fusion_gene_id(df_, type_sel, change_index=False)
+            elif type_sel == "isoform":
+                hue = "gene/ID"
+                df_ = test._fusion_gene_id(df_, type_sel, change_index=True)
+                df_ = df_.reset_index()
+            
+#            df_ = test._fusion_gene_id(df_, type_sel, change_index=False)
+            
+            df = pd.melt(df_, id_vars=hue, var_name="Sample", value_name="FPKM")
+            g = sns.factorplot(x="Sample", y="FPKM", hue=hue,
+                           data=df, ci=None, legend=True, size=10)
+            g.savefig(str(test.path + "test_plot.png"))
+        
+        def image_check():
+            im1=Image.open('Test_files/Papillon/test_plot.png')
+            im2=Image.open('Test_files/Papillon/Plot.png')
+            hash1 = imagehash.average_hash(im1)
+            hash2 = imagehash.average_hash(im2)
+            print(hash1,hash2)
+            self.assertEqual(hash1,hash2)
+        
+        test.get_gene()
+        
+        plot_maker("gene",False)
+        test.plot(export=True)
+        image_check()
+        
+        plot_maker("gene",True)
+        test.plot(export=True,z_score=True)
+        image_check()
+        
+        test.get_isoform()
+        
+        plot_maker("isoform",False)
+        test.plot(export=True)
+        image_check()
+        
+        plot_maker("isoform",True)
+        test.plot(export=True,z_score=True)
+        image_check()
     
-#    def test_heatmap(self):
-#        test.get_gene()
-#        test.heatmap(export=True,figsize=(10,10))
-#        hash1 = imagehash.phash_simple(Image.open('Test/Papillon/small-heatmap.png'))       
-#        print(hash1)        
-#        hash2 = imagehash.phash_simple(Image.open('Test/Papillon/test-small-heatmap.png'))
-#        print(hash2)
-#        self.assertEqual(hash1,hash2)
+    def test_heatmap(self):
         
-#        test.heatmap(z_score=False,export=True)
-#        hash1 = imagehash.average_hash(Image.open('Test/Papillon/small-heatmap.png'))       
-#        hash2 = imagehash.average_hash(Image.open('Test/Papillon/test2-small-heatmap.png'))
-#        self.failUnlessAlmostEqual(hash1,hash2, places=0)
+        def heatmap_maker(z_score, type_sel):
+            df_heatmap = test.onlyFPKM(return_as="gene name",remove_FPKM_name=True)
+            df_heatmap = test._fusion_gene_id(df_heatmap, type_sel, change_index=True)
+            im1 = sns.clustermap(df_heatmap, col_cluster=False, method="complete", cmap="seismic", z_score=z_score)
+            im1.savefig(str(test.path + "test.png"))
+              
+        def image_check():
+            im1=Image.open('Test_files/Papillon/test.png')
+            im2=Image.open('Test_files/Papillon/small-heatmap.png')
+            hash1 = imagehash.average_hash(im1)
+            hash2 = imagehash.average_hash(im2)
+            print(hash1,hash2)
+            self.assertEqual(hash1,hash2)
         
-#        test.get_isoform()
-#        test.heatmap(export=True)
-#        hash1 = imagehash.average_hash(Image.open('Test/Papillon/small-heatmap.png'))       
-#        hash2 = imagehash.average_hash(Image.open('Test/Papillon/test3-small-heatmap.png'))
-#        self.assertEqual(hash1,hash2)
+        test.get_gene()
         
-#        test.heatmap(z_score=False,export=True)
-#        hash1 = imagehash.average_hash(Image.open('Test/Papillon/small-heatmap.png'))       
-#        hash2 = imagehash.average_hash(Image.open('Test/Papillon/test4-small-heatmap.png'))
-#        self.assertEqual(hash1,hash2)
+        heatmap_maker(0,"gene")        
+        test.heatmap(export=True)        
+        image_check()
+        
+        heatmap_maker(None,"gene")        
+        test.heatmap(z_score=False,export=True)        
+        image_check()
+
+        test.get_isoform()
+
+        heatmap_maker(0,"isoform")        
+        test.heatmap(export=True)        
+        image_check()
+        
+        heatmap_maker(None,"isoform")        
+        test.heatmap(z_score=False,export=True)        
+        image_check()
 
 if __name__ == '__main__':
     unittest.main()
