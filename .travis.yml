@@ -5,6 +5,7 @@
     - pip install pandas
     - pip install seaborn
     - pip install codecov
+    - pip install imagehash
   before_script:
     - cd test
   script:
