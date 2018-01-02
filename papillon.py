@@ -194,7 +194,7 @@ class Papillon:
         """
         if what not in ["gene","isoform"]:
             raise Exception("what= not known")
-        df_significant=df_detected[df_detected.loc[:, comparison].any(axis=1)]
+        df_significant=df_detected[df_detected.loc[:, comparison].any(axis=1)] #More general function for plot
         print("\n\tSignificant expressed ", what + "s: ", len(df_significant))
         return df_significant
 
@@ -323,18 +323,31 @@ class Papillon:
         self.isoforms_significant = self.isoforms_significant[cols]
 
 
-    def _select(self, genelist, what, comparison, sign):
+    def _select(self, genelist, what, comparison, sign, detected):
         """Users should not use this function directly.
         Part of get_gene/get_isoform function
         """
+        if detected==True and comparison!=None or sign!=None:
+            raise Exception("If detected==True, comparison or sign not accepted") 
         if what != "gene" and what != "isoform":
             raise Exception("Only what=gene or what=isoform admitted")
-        self.type_selected = what
         gene_list = _obtain_list(genelist, path=self.path)
-        if what == "gene":
-            df = pd.DataFrame.copy(self.genes_significant)
-        elif what == "isoform":
-            df = pd.DataFrame.copy(self.isoforms_significant)
+        if detected == False:
+            self.type_selected = what
+            if what == "gene":
+                data = self.genes_significant
+            elif what == "isoform":
+                data = self.isoforms_significant
+            df = pd.DataFrame.copy(data)
+        elif detected == True:
+            self.type_selected = what+"_detected"
+            if what == "gene":
+                data = self.genes_detect
+            elif what == "isoform":
+                data = self.isoforms_detect
+            df = pd.DataFrame.copy(data)
+        else:
+            raise Exception("Only detected=True/False")
 
         if gene_list != []:
             df["Selected"] = [True if name in gene_list else False for name in df["gene_short_name"]]
@@ -371,7 +384,7 @@ class Papillon:
                     sample1)] < self.selected[_FPKM(sample2)]]
             return
 
-    def get_gene(self, genelist=None, comparison=None, sign=None, export=False):
+    def get_gene(self, genelist=None, comparison=None, sign=None, export=False, detected=False):
         """This function select genes. Create self.selected and 
         self.type_selected="gene".
         genelist - accept string (gene name), list of gene names or file
@@ -383,12 +396,12 @@ class Papillon:
         export - True/False whether want or not export the dataframe of 
                  selected genes
         """
-        self._select(genelist, "gene", comparison, sign)
+        self._select(genelist, "gene", comparison, sign, detected)
         # self.selected.set_index(["gene_short_name"], inplace=True, verify_integrity=True) #I don't know if could be useful
         print("\nNumber of gene selected: ", len(self.selected))
         self._export(self.selected, name="selected_gene", export=export)
  
-    def get_isoform(self, genelist=None, comparison=None, sign=None, export=False, show_dup=False):
+    def get_isoform(self, genelist=None, comparison=None, sign=None, export=False, detected=False, show_dup=False):
         """
         This function select isoforms. Create self.selected and 
         self.type_selected="isoform" 
@@ -403,7 +416,7 @@ class Papillon:
         show_dup - True/False whether want or not highlight duplicated
                    isoforms for the same gene
         """
-        self._select(genelist, "isoform", comparison, sign)
+        self._select(genelist, "isoform", comparison, sign, detected)
 
         try:
             del self.selected["duplicate"]
@@ -427,12 +440,11 @@ class Papillon:
         """Users should not use this function directly.
         Append a "gene/ID" column to the dataframe, and use gene 
         name+id(index) as values, usable or not as index"""
-        # print(df)
-        if type_selected == "gene":
+        if type_selected[:4] == "gene":
             if change_index == True:
                 df.set_index('gene_short_name', inplace=True)
             return df
-        elif type_selected == "isoform":
+        elif type_selected[:4] == "isof":
             df["gene/ID"] = df['gene_short_name'].map(str) + "   " + df.index
             if change_index == True:
                 df.set_index("gene/ID", inplace=True)
@@ -502,6 +514,8 @@ class Papillon:
             raise Exception("High-dimensional data. Ronan et al., 2016")
 
         self.selected_exist()
+        if self.type_selected!="gene" or self.type_selected!="isoform":
+            raise Exception("Heatmap not possible, "+self.type_selected+" is not 'gene' or 'isoform'")
 
         print("Number of genes", len(self.selected))
         if len(self.selected) == 0:
@@ -521,9 +535,7 @@ class Papillon:
         elif len(df_heatmap) > 1000:
             print("Too many genes for a big heatmap")
         
-
-    @staticmethod
-    def _z_score(df):
+    def _z_score(self, df):
         """
         Users should not use this function directly.
         Z-score calculation
@@ -533,11 +545,13 @@ class Papillon:
         # from scipy.stats import zscore
         # zscore(a, axis=1, ddof=1)
         print("Calculating Z Score...")
-        df_mean = df.mean(axis="columns")
-        df_std = df.std(axis="columns")
-        df = df.sub(df_mean, axis="index")
-        df = df.div(df_std, axis="index")
-        return df
+        df_norm = self.onlyFPKM(extra_df=df, return_as="df",remove_FPKM_name=True)
+        df_mean = df_norm.mean(axis="columns")
+        df_std = df_norm.std(axis="columns")
+        df_norm = df_norm.sub(df_mean, axis="index")
+        df_norm = df_norm.div(df_std, axis="index")
+        df_norm["gene_short_name"] = df["gene_short_name"]
+        return df_norm
 
     def plot(self, title="", legend=True, z_score=False, export=False, df=None, size=10, ci=None, **option):
         """
@@ -556,38 +570,63 @@ class Papillon:
             df = self.selected.copy()
         else:
             raise Exception("df should be a pandas df")
-
+        
+        to_process=[]
+        
         if z_score == True:
-            df_ = self.onlyFPKM(extra_df=df, return_as="df",remove_FPKM_name=True)
-            df_norm = self._z_score(df_)
-            df_norm["gene_short_name"] = df["gene_short_name"]
-            df_ = df_norm.copy()
+            if self.type_selected[-8:]=="detected":
+                df1=df[df.loc[:, self.comparison].any(axis=1)]
+                print(df)
+                df2=df[~df.loc[:, self.comparison].any(axis=1)]
+                df_1 = self._z_score(df1)
+                to_process.append(df_1)
+                df_2 = self._z_score(df2)
+                to_process.append(df_2)
+            else:
+                df_ = self._z_score(df)
+                to_process.append(df_)
+        
         elif z_score == False:
-            df_ = self.onlyFPKM(extra_df=df, return_as="gene name",remove_FPKM_name=True)
+            if self.type_selected[-8:]=="detected":
+                df1=df[df.loc[:, self.comparison].any(axis=1)]
+                df2=df[~df.loc[:, self.comparison].any(axis=1)]
+                df_1 = self.onlyFPKM(extra_df=df1, return_as="gene name",remove_FPKM_name=True)
+                df_2 = self.onlyFPKM(extra_df=df2, return_as="gene name",remove_FPKM_name=True)
+                to_process.append(df_1)
+                if len(df2)!=0:
+                    to_process.append(df_2)
+            else:
+                df_ = self.onlyFPKM(extra_df=df, return_as="gene name",remove_FPKM_name=True)
+                to_process.append(df_)
 
-        print("Number of genes to plot: ", len(df_))
-        if len(df_) > 50 and len(df_) < 200:
-            print("Too many genes. Legend not shown")
-            legend = False
-        elif len(df_) >= 200:
-            print("Too many genes. Plot not shown")
-            return
-
-        if self.type_selected == "gene":
-            hue = "gene_short_name"
-            df_ = self._fusion_gene_id(
-                df_, self.type_selected, change_index=False)
-        elif self.type_selected == "isoform":
-            hue = "gene/ID"  # Change this hue name
-            df_ = self._fusion_gene_id(
-                df_, self.type_selected, change_index=True)
-            df_ = df_.reset_index()
-        df = pd.melt(df_, id_vars=[hue], var_name="Sample", value_name="FPKM")
-        g = sns.factorplot(x="Sample", y="FPKM", hue=hue,
-                           data=df, ci=ci, size=size, legend=legend, **option)
-        g.fig.suptitle(title)
-        self._export(g, export=export, name="Plot")
-        return g
+        n=0
+        for df in to_process:                
+            if self.type_selected[:4] == "gene":
+                hue = "gene_short_name"
+                df_ = self._fusion_gene_id(
+                    df, self.type_selected[:4], change_index=False)
+            elif self.type_selected[:4] == "isof":
+                hue = "gene/ID"
+                df_ = self._fusion_gene_id(
+                    df, self.type_selected, change_index=True)
+                print(df_,df)
+                df_ = df_.reset_index()
+    
+            df = pd.melt(df_, id_vars=[hue], var_name="Sample", value_name="FPKM")
+            print(df)
+            if n==0:
+                ax = sns.factorplot(x="Sample", y="FPKM", hue=hue, data=df, ci=ci, size=size, legend=legend, **option)
+                ax.fig.suptitle(title)
+                self._export(ax, export=export, name="Plot")
+            elif n==1:
+                ax2 = sns.factorplot(x="Sample", y="FPKM", hue=hue, data=df, ci=ci, size=size, legend=legend, linestyles=len(df_2)*["--"], **option)
+                ax2.fig.suptitle(title+" Detected but not significant")
+                self._export(ax2, export=export, name="Plot not significant")
+            n+=1
+        try:
+            return ax,ax2
+        except:
+            return ax
 
     def search(self, word, where, how="table", export=False):
         """
