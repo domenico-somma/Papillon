@@ -75,13 +75,14 @@ def read_db(path, drop_comparison=[]):
     """
     Read the cummeRbund Database.
     path - accept a str with the folder path, containing the cummeRbund files
-    drop_comparison - drop comparison (str) or list of comparisons and 
+    drop_comparison - drop comparison (str) or list of comparisons and
                       re-calculate significant genes/isoforms
     """
     return Papillon(path, drop_comparison)
 
 
 class Papillon:
+
     def __init__(self, path, drop_comparison=[]):
         """
         read cummeRbund files and return:
@@ -90,32 +91,39 @@ class Papillon:
         self.comparison - comparisons found
         self.genes_detect - dataframe of genes detected
         self.genes_significant - dataframe of genes significant
-        self.isoforms_detect - dataframe of isoforms detected 
-        self.isoforms_significant - dataframe of isoforms significant 
+        self.isoforms_detect - dataframe of isoforms detected
+        self.isoforms_significant - dataframe of isoforms significant
         expressed
         """
-        files=os.listdir(path)                                  
-        galaxy=[]
+        files = os.listdir(path)
+        galaxy = []
         for file in files:
             if ".tabular" in file:
                 galaxy.append(file)
-        if len(galaxy)==4:
+        if len(galaxy) == 4:
             for file in galaxy:
                 if "transcript_FPKM_tracking" in file:
-                    self.isoform_fpkm = pd.read_csv(str(path +"/"+ file), delimiter='\t', index_col=0)
+                    self.isoform_fpkm = pd.read_csv(
+                        str(path + "/" + file), delimiter='\t', index_col=0)
                 elif "gene_FPKM_tracking" in file:
-                    self.gene_fpkm = pd.read_csv(str(path +"/"+ file), delimiter='\t', index_col=0)
+                    self.gene_fpkm = pd.read_csv(
+                        str(path + "/" + file), delimiter='\t', index_col=0)
                 elif "gene_differential_expression" in file:
-                    self.gene_diff = pd.read_csv(str(path +"/"+ file), delimiter='\t', index_col=0)
+                    self.gene_diff = pd.read_csv(
+                        str(path + "/" + file), delimiter='\t', index_col=0)
                 elif "transcript_differential_expression" in file:
-                    self.isoform_diff = pd.read_csv(str(path +"/"+ file), delimiter='\t', index_col=0)
+                    self.isoform_diff = pd.read_csv(
+                        str(path + "/" + file), delimiter='\t', index_col=0)
         else:
-            try:        
-                self.isoform_fpkm = pd.read_csv(str(path + "/isoforms.fpkm_tracking"),
+            try:
+                self.isoform_fpkm = pd.read_csv(
+                    str(path + "/isoforms.fpkm_tracking"),
                                                 delimiter='\t', index_col=0)
-                self.isoform_diff = pd.read_csv(str(path + "/isoform_exp.diff"),
+                self.isoform_diff = pd.read_csv(
+                    str(path + "/isoform_exp.diff"),
                                                 delimiter='\t', index_col=0)
-                self.gene_fpkm = pd.read_csv(str(path + "/genes.fpkm_tracking"),
+                self.gene_fpkm = pd.read_csv(
+                    str(path + "/genes.fpkm_tracking"),
                                              delimiter='\t', index_col=0)
                 self.gene_diff = pd.read_csv(str(path + "/gene_exp.diff"),
                                              delimiter='\t', index_col=0)
@@ -124,7 +132,8 @@ class Papillon:
 
         self.path = str(path + "/Papillon/")
         if not os.path.exists(self.path):
-            os.makedirs(self.path)  # add check if the folder is moved after creation
+            os.makedirs(self.path)
+                        # add check if the folder is moved after creation
         print("Creating dataframe...")
 
         # find samples name (using isoforms, but it's the same with genes)
@@ -147,9 +156,9 @@ class Papillon:
 
         # generate comparisons name list
         print("\n\tcomparisons found: ")
-        if type(drop_comparison)==str:
-            drop_comparison=[drop_comparison]
-        n=len(drop_comparison)
+        if type(drop_comparison) == str:
+            drop_comparison = [drop_comparison]
+        n = len(drop_comparison)
         self.comparison = []
         for sample1 in col_sample1:
             for sample2 in col_sample2:
@@ -157,7 +166,7 @@ class Papillon:
                     if len(self.isoform_diff[(self.isoform_diff["sample_1"] == sample1) & (self.isoform_diff["sample_2"] == sample2)]) != 0:
                         comparison = _vs(sample1, sample2)
                         if comparison in drop_comparison:
-                            n-=1
+                            n -= 1
                         elif comparison not in drop_comparison:
                             self.comparison.append(comparison)
                             print(comparison)
@@ -166,7 +175,7 @@ class Papillon:
                 else:
                     pass
         if n != 0:
-            raise Exception(drop_comparison," not found")
+            raise Exception(drop_comparison, " not found")
         self.genes_detect, self.genes_significant = self._generate_df("gene")
         self.isoforms_detect, self.isoforms_significant = self._generate_df(
             "isoform")
@@ -187,14 +196,15 @@ class Papillon:
         elif what == "isoform":
             return self.isoform_fpkm, self.isoform_diff
 
-    @staticmethod        
+    @staticmethod
     def _significant(df_detected, comparison, what):
         """Users should not use this function directly.
         Calculate significant expressed genes.
         """
-        if what not in ["gene","isoform"]:
+        if what not in ["gene", "isoform"]:
             raise Exception("what= not known")
-        df_significant=df_detected[df_detected.loc[:, comparison].any(axis=1)]
+        df_significant = df_detected[
+            df_detected.loc[:, comparison].any(axis=1)]
         print("\n\tSignificant expressed ", what + "s: ", len(df_significant))
         return df_significant
 
@@ -216,48 +226,50 @@ class Papillon:
 
             df[comparison] = [True if signif ==
                               "yes" else False for signif in df2["significant"]]
-            df[str("q-value_" + comparison)] = df2["q_value"] 
+            df[str("q-value_" + comparison)] = df2["q_value"]
 
         m = 2
         n = len(self.samples) + 2
         TrueFalseMask = df.iloc[:, m:n] > 0  # with at least 1 value>0
         df_detected = df[TrueFalseMask.any(axis=1)]
         print("\n\tDetected ", what + "s: ", len(df_detected))
-        
+
         df_significant = self._significant(df_detected, self.comparison, what)
         return df_detected, df_significant
-    
+
     def _compare(self):
-        """ 
+        """
         Users should not use this function directly.
         Compare genes and isoforms significantly expressed
         """
         genes = list(self.genes_significant["gene_short_name"])
         isoforms = list(self.isoforms_significant["gene_short_name"])
-        genes_not_found=[]
-        isoforms_not_found=[]        
+        genes_not_found = []
+        isoforms_not_found = []
         for name in genes:
             if name not in isoforms:
                 genes_not_found.append(name)
-        genes_not_found=set(genes_not_found)
-        n=len(genes_not_found)
+        genes_not_found = set(genes_not_found)
+        n = len(genes_not_found)
         if n != 0:
-            print("\n", n, " significant genes are not found in significant isoforms")
-            if n<50 and n>0:
+            print(
+                "\n", n, " significant genes are not found in significant isoforms")
+            if n < 50 and n > 0:
                 if n != len(set(genes_not_found)):
                     raise Exception("Duplicate genes")
                 print(set(genes_not_found))
         for name in isoforms:
             if name not in genes:
                 isoforms_not_found.append(name)
-        n=len(isoforms_not_found)        
+        n = len(isoforms_not_found)
         if n != 0:
-            print(n, " significant isoforms are not found in significant genes")
-            isoforms_not_found=set(isoforms_not_found)            
-            if n<50 and n>0:
+            print(
+                n, " significant isoforms are not found in significant genes")
+            isoforms_not_found = set(isoforms_not_found)
+            if n < 50 and n > 0:
                 print(set(isoforms_not_found))
         return genes_not_found, isoforms_not_found, n  # Only for tests so far.
-    
+
     def __str__(self):
         a = "Samples: " + str(self.samples) + "\n"
         b = "Comparison: " + str(self.comparison) + "\n"
@@ -276,15 +288,15 @@ class Papillon:
         return visual
 
     def dropComparison(self, comparison):
-        """Drop Comparison (str) or list of comparisons and re-calculate 
+        """Drop Comparison (str) or list of comparisons and re-calculate
         df_significant"""
 
         def dropComp(comp):
             if comp in self.comparison:
                     del self.isoforms_detect[comp]
-                    del self.isoforms_detect[str("q-value_"+comp)]
+                    del self.isoforms_detect[str("q-value_" + comp)]
                     del self.genes_detect[comp]
-                    del self.genes_detect[str("q-value_"+comp)]
+                    del self.genes_detect[str("q-value_" + comp)]
                     self.comparison.remove(comp)
                     self.selected_exist(remove=True)
                     print(comp, " removed")
@@ -298,30 +310,31 @@ class Papillon:
             dropComp(comparison)
         else:
             raise Exception(comparison, " not found, please double check it")
-            
-        self.genes_significant=self._significant(self.genes_detect,self.comparison,"gene")
-        self.isoforms_significant=self._significant(self.isoforms_detect,self.comparison,"isoform")
+
+        self.genes_significant = self._significant(
+            self.genes_detect, self.comparison, "gene")
+        self.isoforms_significant = self._significant(
+            self.isoforms_detect, self.comparison, "isoform")
         self._compare()
         print("...Done")
-    
+
     def change_order(self, new_order):
         """Change the samples order"""
         self.selected_exist(remove=True)
-        n_sampl=len(self.samples)
+        n_sampl = len(self.samples)
         if len(new_order) != n_sampl:
             raise Exception("Number of samples doesn't match")
         for sample in new_order:
             if sample not in self.samples:
-                raise Exception(sample,"Sample not known")
-        
+                raise Exception(sample, "Sample not known")
+
         cols = self.genes_detect.columns.tolist()
-        cols = cols[:2] + _FPKM(new_order) + cols[n_sampl+2:]
+        cols = cols[:2] + _FPKM(new_order) + cols[n_sampl + 2:]
         self.samples = new_order
         self.genes_detected = self.genes_detect[cols]
         self.genes_significant = self.genes_significant[cols]
         self.isoforms_detect = self.isoforms_detect[cols]
         self.isoforms_significant = self.isoforms_significant[cols]
-
 
     def _select(self, genelist, what, comparison, sign):
         """Users should not use this function directly.
@@ -337,7 +350,8 @@ class Papillon:
             df = pd.DataFrame.copy(self.isoforms_significant)
 
         if gene_list != []:
-            df["Selected"] = [True if name in gene_list else False for name in df["gene_short_name"]]
+            df["Selected"] = [
+                True if name in gene_list else False for name in df["gene_short_name"]]
             df = df[df["Selected"] == True].iloc[:, :-1]
             for name in gene_list:
                 if name not in list(df["gene_short_name"]):
@@ -372,33 +386,34 @@ class Papillon:
             return
 
     def get_gene(self, genelist=None, comparison=None, sign=None, export=False):
-        """This function select genes. Create self.selected and 
+        """This function select genes. Create self.selected and
         self.type_selected="gene".
         genelist - accept string (gene name), list of gene names or file
                    with a list of gene name
-        comparison - accept only 1 comparison as str (already present in 
+        comparison - accept only 1 comparison as str (already present in
                      the data)
-        sign - usable in combination with comparison, accept either ">" or 
+        sign - usable in combination with comparison, accept either ">" or
                "<"
-        export - True/False whether want or not export the dataframe of 
+        export - True/False whether want or not export the dataframe of
                  selected genes
         """
         self._select(genelist, "gene", comparison, sign)
-        # self.selected.set_index(["gene_short_name"], inplace=True, verify_integrity=True) #I don't know if could be useful
+        # self.selected.set_index(["gene_short_name"], inplace=True,
+        # verify_integrity=True) #I don't know if could be useful
         print("\nNumber of gene selected: ", len(self.selected))
         self._export(self.selected, name="selected_gene", export=export)
- 
+
     def get_isoform(self, genelist=None, comparison=None, sign=None, export=False, show_dup=False):
         """
-        This function select isoforms. Create self.selected and 
-        self.type_selected="isoform" 
+        This function select isoforms. Create self.selected and
+        self.type_selected="isoform"
         genelist - accept string (gene name), list of gene names or file
                    with a list of gene name
-        comparison - accept only 1 comparison as str (already present in 
+        comparison - accept only 1 comparison as str (already present in
                      the data)
-        sign - usable in combination with comparison, accept either ">" or 
+        sign - usable in combination with comparison, accept either ">" or
                "<"
-        export - True/False whether want or not export the dataframe of 
+        export - True/False whether want or not export the dataframe of
                  selected genes
         show_dup - True/False whether want or not highlight duplicated
                    isoforms for the same gene
@@ -415,7 +430,8 @@ class Papillon:
                 "gene_short_name", keep=False)
         else:
             pass
-        # TO DO if remove_dup == True: # it'd remove the one with lower q-value. and if the q-value is the same???
+        # TO DO if remove_dup == True: # it'd remove the one with lower
+        # q-value. and if the q-value is the same???
 
         print("\nNumber of isoform selected: ", len(self.selected))
         self._export(self.selected, name="selected_isoform", export=export)
@@ -423,9 +439,9 @@ class Papillon:
         # Return number genes searched, not found
 
     @staticmethod
-    def _fusion_gene_id(df, type_selected, change_index=False):  
+    def _fusion_gene_id(df, type_selected, change_index=False):
         """Users should not use this function directly.
-        Append a "gene/ID" column to the dataframe, and use gene 
+        Append a "gene/ID" column to the dataframe, and use gene
         name+id(index) as values, usable or not as index"""
         # print(df)
         if type_selected == "gene":
@@ -440,45 +456,46 @@ class Papillon:
             return df
 
     def onlyFPKM(self, return_as, **option):
-        """Return a DataFrame with only FPKM columns, 
-        return as: 
+        """Return a DataFrame with only FPKM columns,
+        return as:
             "df" - pandas DataFrame
             "array" - numpy array
             "gene name" - pandas DataFrame containing gene names
-        It uses self.selected, or an extra_df. 
+        It uses self.selected, or an extra_df.
         """
         self.selected_exist()
         df = self.selected.copy()
         if type(option.get("extra_df")) == pd.DataFrame:
             df = option.get("extra_df")
         if return_as == "df":
-            df= df.loc[:, _FPKM(self.samples)]
+            df = df.loc[:, _FPKM(self.samples)]
         elif return_as == "array":
-            df= df.loc[:, _FPKM(self.samples)].values
+            df = df.loc[:, _FPKM(self.samples)].values
         elif return_as == "gene name":
             columns = ['gene_short_name'] + _FPKM(self.samples)
             df = df.loc[:, columns]
         else:
-            raise Exception("Return_as not known. Only 'df','array','gene name'")
-        
+            raise Exception(
+                "Return_as not known. Only 'df','array','gene name'")
+
         if option.get("remove_FPKM_name") == True:
-            mydic={}
-            n=len(self.samples)
-            while n!=0:
-                n-=1
-                mydic[_FPKM(self.samples[n])]=self.samples[n]
-            df.rename(columns=mydic,inplace=True)
+            mydic = {}
+            n = len(self.samples)
+            while n != 0:
+                n -= 1
+                mydic[_FPKM(self.samples[n])] = self.samples[n]
+            df.rename(columns=mydic, inplace=True)
         return df
 
-    def selected_exist(self,remove=False):
+    def selected_exist(self, remove=False):
         """Check if self.selected exists"""
-        if remove==True:
+        if remove == True:
             try:
                 del self.df_detected
                 del self.type_selected
             except:
                 pass
-        elif remove==False:
+        elif remove == False:
             try:
                 self.selected
                 return True
@@ -493,7 +510,7 @@ class Papillon:
         col_cluster - True/False whether want or not cluster the samples
         method - clustering algorithm - default is complete-linkage
         cmap - map color
-        export - True/False whether want or not export the dataframe of 
+        export - True/False whether want or not export the dataframe of
                  selected genes
         **options - all the options accepted by seaborn.clustermap
         default metric is euclidean.
@@ -506,21 +523,26 @@ class Papillon:
         print("Number of genes", len(self.selected))
         if len(self.selected) == 0:
             return
-        df_heatmap = self.onlyFPKM(return_as="gene name",remove_FPKM_name=True)
-        
+        df_heatmap = self.onlyFPKM(
+            return_as="gene name", remove_FPKM_name=True)
+
         df_heatmap = self._fusion_gene_id(
             df_heatmap, self.type_selected, change_index=True)
-        
-        if z_score == True: z_score = 0
-        elif z_score == False: z_score = None
-        small = sns.clustermap(df_heatmap, col_cluster=col_cluster, method=method, cmap=cmap, z_score=z_score, **options)
+
+        if z_score == True:
+            z_score = 0
+        elif z_score == False:
+            z_score = None
+        small = sns.clustermap(
+            df_heatmap, col_cluster=col_cluster, method=method, cmap=cmap, z_score=z_score, **options)
         self._export(small, name="small-heatmap", export=export)
         if len(df_heatmap) < 1000 and len(df_heatmap) > 25:
-            big = sns.clustermap(df_heatmap, col_cluster=col_cluster, method=method, cmap=cmap, z_score=z_score, figsize=((len(self.samples)), int(len(df_heatmap.index) / 4)), **options)
+            big = sns.clustermap(
+                df_heatmap, col_cluster=col_cluster, method=method, cmap=cmap,
+                                 z_score=z_score, figsize=((len(self.samples)), int(len(df_heatmap.index) / 4)), **options)
             self._export(big, name="big-heatmap", export=export)
         elif len(df_heatmap) > 1000:
             print("Too many genes for a big heatmap")
-        
 
     @staticmethod
     def _z_score(df):
@@ -558,12 +580,14 @@ class Papillon:
             raise Exception("df should be a pandas df")
 
         if z_score == True:
-            df_ = self.onlyFPKM(extra_df=df, return_as="df",remove_FPKM_name=True)
+            df_ = self.onlyFPKM(
+                extra_df=df, return_as="df", remove_FPKM_name=True)
             df_norm = self._z_score(df_)
             df_norm["gene_short_name"] = df["gene_short_name"]
             df_ = df_norm.copy()
         elif z_score == False:
-            df_ = self.onlyFPKM(extra_df=df, return_as="gene name",remove_FPKM_name=True)
+            df_ = self.onlyFPKM(
+                extra_df=df, return_as="gene name", remove_FPKM_name=True)
 
         print("Number of genes to plot: ", len(df_))
         if len(df_) > 50 and len(df_) < 200:
@@ -594,15 +618,15 @@ class Papillon:
         search among genes/isoforms names in detected and significant
         word - accept a str to search among the gene names
         where - accept:
-            "genes_detected" 
-            "genes_significant" 
+            "genes_detected"
+            "genes_significant"
             "isoforms_detected"
             "isoforms_significant"
 
         how - accept:
             "table" return the dataframe with the genes found
             "list" return a list of names, no duplicates
-            "selected" put the genes found among the differential expressed 
+            "selected" put the genes found among the differential expressed
                        genes in self.selected (to plot),
                        working only with where="significant"
         """
@@ -640,13 +664,15 @@ class Papillon:
         else:
             print(len(df), " genes/isoforms detected.")
         if len(df_sig) == 0:
-            print("None of these are differentially expressed among the samples")
+            print(
+                "None of these are differentially expressed among the samples")
         else:
             print(len(df_sig), " differential expressed.")
 
         if how == "selected":
             if word2 != "significant":
-                raise Exception('how == "selected", but only significant genes/isoforms can be selected.')
+                raise Exception(
+                    'how == "selected", but only significant genes/isoforms can be selected.')
             elif word2 == "significant":
                 found = df_sig.copy()
                 self.selected = found.copy()
