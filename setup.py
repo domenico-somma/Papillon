@@ -8,7 +8,7 @@ from setuptools import setup
 
 setup(
     name='papillon',
-    version='0.0.7',
+    version='0.0.8',
     py_modules=['papillon'],
     description='A Python module to read and plot Galaxy RNA-seq data',
     author='Domenico Somma',
