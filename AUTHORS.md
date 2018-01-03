@@ -4,5 +4,5 @@ Papillon main developers:
 
 Contributors:
 
-* Emma Smith 
+* Emma Smith: e.smith.4@research.gla.ac.uk
   * for suggestions and Beta testing
