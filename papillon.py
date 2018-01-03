@@ -327,7 +327,7 @@ class Papillon:
         """Users should not use this function directly.
         Part of get_gene/get_isoform function
         """
-        if detected==True and comparison!=None or sign!=None:
+        if detected==True and (comparison!=None or sign!=None):
             raise Exception("If detected==True, comparison or sign not accepted") 
         if what != "gene" and what != "isoform":
             raise Exception("Only what=gene or what=isoform admitted")
@@ -363,7 +363,7 @@ class Papillon:
         Part of get_gene/get_isoform function
         """
         ACCEPTED_SIGN = [">", "<", None]
-
+        
         if comparison is None:
             if sign is None:
                 return
@@ -440,6 +440,7 @@ class Papillon:
         """Users should not use this function directly.
         Append a "gene/ID" column to the dataframe, and use gene 
         name+id(index) as values, usable or not as index"""
+#       print(type_selected[:3])
         if type_selected[:4] == "gene":
             if change_index == True:
                 df.set_index('gene_short_name', inplace=True)
@@ -493,6 +494,8 @@ class Papillon:
         elif remove==False:
             try:
                 self.selected
+                if len(self.selected)==0:
+                    raise Exception("No gene selected")
                 return True
             except AttributeError:
                 raise Exception("No gene selected")
@@ -514,7 +517,8 @@ class Papillon:
             raise Exception("High-dimensional data. Ronan et al., 2016")
 
         self.selected_exist()
-        if self.type_selected!="gene" or self.type_selected!="isoform":
+
+        if self.type_selected not in ["gene","isoform"]:
             raise Exception("Heatmap not possible, "+self.type_selected+" is not 'gene' or 'isoform'")
 
         print("Number of genes", len(self.selected))
@@ -613,7 +617,7 @@ class Papillon:
                 df_ = df_.reset_index()
     
             df = pd.melt(df_, id_vars=[hue], var_name="Sample", value_name="FPKM")
-            print(df)
+
             if n==0:
                 ax = sns.factorplot(x="Sample", y="FPKM", hue=hue, data=df, ci=ci, size=size, legend=legend, **option)
                 ax.fig.suptitle(title)

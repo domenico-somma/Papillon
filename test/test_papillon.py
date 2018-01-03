@@ -256,8 +256,8 @@ class papillon_Test(unittest.TestCase):
         test.get_isoform()
         df=test.onlyFPKM("df")
         df1=zscore(df, axis=1, ddof=1)
-        df2=test._z_score(df)
-        df2=test.onlyFPKM("array",extra_df=df2)
+        df2=test._z_score(test.selected)
+        df2=df2.iloc[:,:-1].values
         self.failUnlessAlmostEqual(df1.all(), df2.all(), places=0)
     
     def test_search(self):
@@ -422,10 +422,7 @@ class papillon_Test(unittest.TestCase):
         def plot_maker(type_sel,z_score):
             
             if z_score == True:
-                df_ = test.onlyFPKM(return_as="df",remove_FPKM_name=True)
-                df_norm = test._z_score(df_)
-                df_norm["gene_short_name"] = test.selected["gene_short_name"]
-                df_ = df_norm.copy()
+                df_ = test._z_score(test.selected)
             elif z_score==False:        
                 df_ = test.onlyFPKM(return_as="gene name",remove_FPKM_name=True)
             
@@ -489,8 +486,7 @@ class papillon_Test(unittest.TestCase):
             self.assertEqual(hash1,hash2)
         
         test.get_gene()
-        
-        heatmap_maker(0,"gene")        
+        heatmap_maker(0,"gene")
         test.heatmap(export=True)        
         image_check()
         
