@@ -1,2 +1,9 @@
 include docs/*.*
-include papillon/test/Test_files/*.*
+include test/*.py
+include test/Test_files/*.*
+include test/Test_files/Papillon/*.list
+include AUTHORS.md
+include CHANGE.txt
+include CONTRIBUTING.md
+include LICENSE
+include README.md
