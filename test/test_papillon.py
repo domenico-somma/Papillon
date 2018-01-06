@@ -4,7 +4,7 @@
 """
 
 # TO DO test exception
-# TO DO test export
+# TO DO test with high number genes (>200)
 
 import os
 import matplotlib as mpl
@@ -65,12 +65,14 @@ class papillon_Test(unittest.TestCase):
         c=len(test.isoforms_detect.columns)
         d=len(test.isoforms_significant.columns)
         self.assertTrue(a==b and b==c and c==d and d==18)
-#        printable="Samples: ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']\nComparison: ['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']\nGenes Detected: 5\nGenes differential expressed: 3\nIsoform Detected: 28\nIsoform differential expressed: 5\nNone of the genes is selected\n"
-#        print(test.__str__(),"\n",printable)
-#        self.assertTrue(test.__str__()==printable)
+        test2=pp.read_db(path)
+        printable="Samples: ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']\nComparison: ['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']\nGenes Detected: 5\nGenes differential expressed: 3\nIsoform Detected: 28\nIsoform differential expressed: 5\nNone of the genes is selected"
+#        print(test2.__str__(),"\n",printable)
+        self.assertTrue(test2.__str__()==printable)
 
     def test_get_gene(self):
         test.get_gene()
+        self.assertEqual(test.type_selected,"gene")
         self.assertEqual(len(test.selected),3)
         self.assertEqual(len(test.selected.columns),18)
         
@@ -110,7 +112,20 @@ class papillon_Test(unittest.TestCase):
         self.assertEqual(test.selected.index[0],"IL6")
         self.assertEqual(len(test.selected.columns),18)
         
+        #Detected option
+        test.get_gene(detected=True)
+        self.assertEqual(test.type_selected,"gene_detected")
+        self.assertEqual(len(test.selected),5)
+        self.assertEqual(len(test.selected.columns),18)
+        
+        test.get_gene(["IL15","IL6"],detected=True)
+        self.assertEqual(test.type_selected,"gene_detected")
+        self.assertEqual(len(test.selected),2)
+        self.assertEqual(len(test.selected.columns),18)
+        
+        #Final
         test.get_gene()
+        self.assertEqual(test.type_selected,"gene")
         self.assertEqual(len(test.selected),3)
         self.assertEqual(len(test.selected.columns),18)
 
@@ -168,8 +183,20 @@ class papillon_Test(unittest.TestCase):
         self.assertEqual(test.selected.index[0],"NM_000600.3")
         self.assertEqual(len(test.selected.columns),18)
         
+        #Detected option
+        test.get_isoform(detected=True)
+        self.assertEqual(test.type_selected,"isoform_detected")
+        self.assertEqual(len(test.selected),28)
+        self.assertEqual(len(test.selected.columns),18)
+        
+        test.get_isoform(["IL15","IL6"],detected=True)
+        self.assertEqual(test.type_selected,"isoform_detected")
+        self.assertEqual(len(test.selected),4)
+        self.assertEqual(len(test.selected.columns),18)
+        
         # Final        
         test.get_isoform()
+        self.assertEqual(test.type_selected,"isoform")
         self.assertEqual(len(test.selected),5)
         self.assertEqual(len(test.selected.columns),18)
     
@@ -446,7 +473,7 @@ class papillon_Test(unittest.TestCase):
             im2=Image.open('Test_files/Papillon/Plot.png')
             hash1 = imagehash.average_hash(im1)
             hash2 = imagehash.average_hash(im2)
-            print(hash1,hash2)
+#            print(hash1,hash2)
             self.assertEqual(hash1,hash2)
         
         test.get_gene()
@@ -468,6 +495,34 @@ class papillon_Test(unittest.TestCase):
         plot_maker("isoform",True)
         test.plot(export=True,z_score=True)
         image_check()
+        
+#    def test_plots_detected(self):
+        
+#        def plot_maker(type_sel,z_score):
+            
+#            df=test.selected
+#            df1=df[df.loc[:, self.comparison].any(axis=1)]
+#            df2=df[~df.loc[:, self.comparison].any(axis=1)]
+
+#            if z_score == True:
+#                df_ = test._z_score(test.selected)
+#            elif z_score==False:        
+#                df_ = test.onlyFPKM(return_as="gene name",remove_FPKM_name=True)
+            
+#            if type_sel == "gene":
+#                hue = "gene_short_name"
+#                df_ = test._fusion_gene_id(df_, type_sel, change_index=False)
+#            elif type_sel == "isoform":
+#                hue = "gene/ID"
+#                df_ = test._fusion_gene_id(df_, type_sel, change_index=True)
+#                df_ = df_.reset_index()
+            
+#            df_ = test._fusion_gene_id(df_, type_sel, change_index=False)
+            
+#            df = pd.melt(df_, id_vars=hue, var_name="Sample", value_name="FPKM")
+#            g = sns.factorplot(x="Sample", y="FPKM", hue=hue,
+#                           data=df, ci=None, legend=True, size=10)
+#            g.savefig(str(test.path + "test_plot.png"))
     
     def test_heatmap(self):
         
@@ -482,7 +537,7 @@ class papillon_Test(unittest.TestCase):
             im2=Image.open('Test_files/Papillon/small-heatmap.png')
             hash1 = imagehash.average_hash(im1)
             hash2 = imagehash.average_hash(im2)
-            print(hash1,hash2)
+#            print(hash1,hash2)
             self.assertEqual(hash1,hash2)
         
         test.get_gene()

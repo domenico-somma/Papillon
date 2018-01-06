@@ -338,16 +338,16 @@ class Papillon:
                 data = self.genes_significant
             elif what == "isoform":
                 data = self.isoforms_significant
-            df = pd.DataFrame.copy(data)
         elif detected == True:
             self.type_selected = what+"_detected"
             if what == "gene":
                 data = self.genes_detect
             elif what == "isoform":
                 data = self.isoforms_detect
-            df = pd.DataFrame.copy(data)
         else:
             raise Exception("Only detected=True/False")
+
+        df = pd.DataFrame.copy(data)
 
         if gene_list != []:
             df["Selected"] = [True if name in gene_list else False for name in df["gene_short_name"]]
@@ -519,7 +519,10 @@ class Papillon:
         self.selected_exist()
 
         if self.type_selected not in ["gene","isoform"]:
-            raise Exception("Heatmap not possible, "+self.type_selected+" is not 'gene' or 'isoform'")
+            if self.type_selected[-8:] == "detected":
+                raise Exception("Please run get_gene() or get_isoform() with detected=False")  # Should be just a warning?
+            else:
+                raise Exception("Heatmap not possible, "+self.type_selected+" is not 'gene' or 'isoform'")
 
         print("Number of genes", len(self.selected))
         if len(self.selected) == 0:
@@ -556,8 +559,20 @@ class Papillon:
         df_norm = df_norm.div(df_std, axis="index")
         df_norm["gene_short_name"] = df["gene_short_name"]
         return df_norm
+    
+    def _split_sign_det(self, df, **option):  # used only by plot, should be a plot sub function?
+        """Split a dataframe in significant and not significant and plot them"""
+        df_sign=df[df.loc[:, self.comparison].any(axis=1)]
+        df_not_sign=df[~df.loc[:, self.comparison].any(axis=1)]
+        
+        if len(df_sign) != 0:
+            self.plot(df=df_sign, **option)
+        if len(df_not_sign) != 0:
+            self.plot(df=df_not_sign, title="Not significant", linestyles=len(df_not_sign)*["--"], file_name="Plot not significant", **option)
+        return
 
-    def plot(self, title="", legend=True, z_score=False, export=False, df=None, size=10, ci=None, **option):
+    def plot(self, title="", legend=True, z_score=False, export=False, df=None, size=10, ci=None, file_name="Plot", **option):
+        #devono diventare due funzioni, 1 per plottare e una che divide geni e prepara
         """
         LinePlot a selected dataframe of genes. Max number of genes 200
         title - accept a string as title of the plot
@@ -567,70 +582,50 @@ class Papillon:
         df - accept a dataframe different from self.selected
         **options - all the options accepted by seaborn.factorplot
         """
-        if type(df) == pd.DataFrame:
+        
+        if type(df) == pd.DataFrame and len(df) != 0:
             pass
         elif df is None:
             self.selected_exist()
             df = self.selected.copy()
+            if self.type_selected[-8:] == "detected":
+                self._split_sign_det(df, legend=legend, z_score=z_score, export=export, size=size)
+                return
+            else:
+                pass
         else:
             raise Exception("df should be a pandas df")
         
-        to_process=[]
-        
         if z_score == True:
-            if self.type_selected[-8:]=="detected":
-                df1=df[df.loc[:, self.comparison].any(axis=1)]
-                print(df)
-                df2=df[~df.loc[:, self.comparison].any(axis=1)]
-                df_1 = self._z_score(df1)
-                to_process.append(df_1)
-                df_2 = self._z_score(df2)
-                to_process.append(df_2)
-            else:
-                df_ = self._z_score(df)
-                to_process.append(df_)
+            df_ = self._z_score(df)
         
         elif z_score == False:
-            if self.type_selected[-8:]=="detected":
-                df1=df[df.loc[:, self.comparison].any(axis=1)]
-                df2=df[~df.loc[:, self.comparison].any(axis=1)]
-                df_1 = self.onlyFPKM(extra_df=df1, return_as="gene name",remove_FPKM_name=True)
-                df_2 = self.onlyFPKM(extra_df=df2, return_as="gene name",remove_FPKM_name=True)
-                to_process.append(df_1)
-                if len(df2)!=0:
-                    to_process.append(df_2)
-            else:
-                df_ = self.onlyFPKM(extra_df=df, return_as="gene name",remove_FPKM_name=True)
-                to_process.append(df_)
+            df_ = self.onlyFPKM(extra_df=df, return_as="gene name", remove_FPKM_name=True)
 
-        n=0
-        for df in to_process:                
-            if self.type_selected[:4] == "gene":
-                hue = "gene_short_name"
-                df_ = self._fusion_gene_id(
-                    df, self.type_selected[:4], change_index=False)
-            elif self.type_selected[:4] == "isof":
-                hue = "gene/ID"
-                df_ = self._fusion_gene_id(
-                    df, self.type_selected, change_index=True)
-                print(df_,df)
-                df_ = df_.reset_index()
+        print("Number of genes to plot: ", len(df_))
+        if len(df_) > 50 and len(df_) < 200:
+            print("Too many genes. Legend not shown")
+            legend = False
+        elif len(df_) >= 200:
+            print("Too many genes. Plot not shown")
+            return
+        
+        if self.type_selected[:4] == "gene":
+            hue = "gene_short_name"
+            df_ = self._fusion_gene_id(
+                df_, self.type_selected[:4], change_index=False)
+        elif self.type_selected[:4] == "isof":
+            hue = "gene/ID"
+            df_ = self._fusion_gene_id(
+                df_, self.type_selected, change_index=True)
+            df_ = df_.reset_index()
     
-            df = pd.melt(df_, id_vars=[hue], var_name="Sample", value_name="FPKM")
+        df_ = pd.melt(df_, id_vars=[hue], var_name="Sample", value_name="FPKM")
 
-            if n==0:
-                ax = sns.factorplot(x="Sample", y="FPKM", hue=hue, data=df, ci=ci, size=size, legend=legend, **option)
-                ax.fig.suptitle(title)
-                self._export(ax, export=export, name="Plot")
-            elif n==1:
-                ax2 = sns.factorplot(x="Sample", y="FPKM", hue=hue, data=df, ci=ci, size=size, legend=legend, linestyles=len(df_2)*["--"], **option)
-                ax2.fig.suptitle(title+" Detected but not significant")
-                self._export(ax2, export=export, name="Plot not significant")
-            n+=1
-        try:
-            return ax,ax2
-        except:
-            return ax
+        ax = sns.factorplot(x="Sample", y="FPKM", hue=hue, data=df_, ci=ci, size=size, legend=legend, **option)
+        ax.fig.suptitle(title)
+        self._export(ax, export=export, name=file_name)
+        return ax
 
     def search(self, word, where, how="table", export=False):
         """
