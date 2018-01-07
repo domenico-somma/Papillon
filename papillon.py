@@ -7,11 +7,7 @@ import os
 import pandas as pd
 import seaborn as sns
 from distutils.version import LooseVersion
-try:
-    from IPython import get_ipython
-    get_ipython().run_line_magic('matplotlib', 'inline')
-except:
-    pass
+
 
 if LooseVersion(pd.__version__) < LooseVersion("0.17.1"):
     raise Exception("Pandas >= 0.17.1 required")
@@ -19,21 +15,18 @@ if LooseVersion(sns.__version__) < LooseVersion("0.8.1"):
     raise Exception("Seaborn >= 0.8.1 required")
 
 
-def _FPKM(name):
-    """Either append or remove '_FPKM' to a string/list of strings"""
-    fpkm = []
-    if type(name) == list:
-        for n in name:
-            fpkm.append(_FPKM(n))
-        return fpkm
-    elif type(name) == str:
-        if name[-5:] == "_FPKM":
-            name = name[:-5]
+def _FPKM(name_list):
+    """Either append or remove '_FPKM' to a string or an iterable"""
+    try:
+        if name_list.endswith("_FPKM"):
+            return name_list[:-5]
         else:
-            name = str(name + "_FPKM")
-        return name
-    else:
-        raise Exception("Only list or string!")
+           return name_list+"_FPKM"
+    except AttributeError:
+        if name_list[0].endswith("_FPKM"):
+            return [name[:-5] for name in name_list]
+        else:
+            return [name+"_FPKM" for name in name_list]
 
 
 def _vs(word1, word2=None):
@@ -54,20 +47,16 @@ def _vs(word1, word2=None):
 def _obtain_list(genelist, path):  # To add eventually remove empty one
     """obtain a python list from a file, from a string (or from a list)"""
     gene_list = []
-    if type(genelist) == str:
+    try:
         if "." in genelist:
-            file = open(str(path + genelist), "r")
-            file = file.readlines()
-            for gene in file:
-                gene_list.append(gene[:-1])
+                file = open(str(path + genelist), "r")
+                gene_list=[gene[:-1] for gene in file.readlines()]
+        elif isinstance(genelist,str): 
+            gene_list=[genelist]
         else:
-            gene_list = [genelist]
-    elif type(genelist) == list:
-        gene_list = genelist
-    elif genelist is None:
-        return gene_list
-    else:
-        raise Exception("Only None, [list] or file_name")
+            gene_list=[e for e in genelist]
+    except TypeError:
+        pass
     return gene_list
 
 
@@ -138,12 +127,9 @@ class Papillon:
 
         # find samples name (using isoforms, but it's the same with genes)
         self.samples = []
-        print("\tsamples found: ")
-        for name in list(self.isoform_fpkm.columns):
-            if name[-5:] == "_FPKM":
-                name = _FPKM(name)
-                self.samples.append(name)
-                print(name)
+        print("\tsamples found: ")                
+        self.samples=[name[:-5] for name in self.isoform_fpkm.columns.tolist() if name[-5:] == "_FPKM"]
+        [print(name) for name in self.samples]
 
         # file samples in sample_1 and 2 columns
         col_sample1 = []
@@ -156,9 +142,10 @@ class Papillon:
 
         # generate comparisons name list
         print("\n\tcomparisons found: ")
-        if type(drop_comparison) == str:
+        if isinstance(drop_comparison,str):
             drop_comparison = [drop_comparison]
         n = len(drop_comparison)
+
         self.comparison = []
         for sample1 in col_sample1:
             for sample2 in col_sample2:
@@ -303,13 +290,11 @@ class Papillon:
             else:
                 raise Exception(comp, " not found, please double check it")
 
-        if type(comparison) == list:
-            for comp in comparison:
-                dropComp(str(comp))
-        elif type(comparison) == str:
+        if isinstance(comparison,str):
             dropComp(comparison)
         else:
-            raise Exception(comparison, " not found, please double check it")
+            for comp in comparison:
+                dropComp(comp)
 
         self.genes_significant = self._significant(
             self.genes_detect, self.comparison, "gene")
@@ -378,8 +363,8 @@ class Papillon:
             self.selected = self.selected[self.selected[comparison] == True]
             sample1, sample2 = _vs(comparison)
             if sign == ">":
-                self.selected = self.selected[self.selected[_FPKM(
-                    sample1)] > self.selected[_FPKM(sample2)]]
+                self.selected = self.selected[self.selected[
+                    _FPKM(sample1)] > self.selected[_FPKM(sample2)]]
             elif sign == "<":
                 self.selected = self.selected[self.selected[_FPKM(
                     sample1)] < self.selected[_FPKM(sample2)]]
@@ -465,7 +450,7 @@ class Papillon:
         """
         self.selected_exist()
         df = self.selected.copy()
-        if type(option.get("extra_df")) == pd.DataFrame:
+        if isinstance(option.get("extra_df"),pd.DataFrame):
             df = option.get("extra_df")
         if return_as == "df":
             df = df.loc[:, _FPKM(self.samples)]
@@ -571,13 +556,10 @@ class Papillon:
         df - accept a dataframe different from self.selected
         **options - all the options accepted by seaborn.factorplot
         """
-        if type(df) == pd.DataFrame:
-            pass
-        elif df is None:
+
+        if df is None:
             self.selected_exist()
             df = self.selected.copy()
-        else:
-            raise Exception("df should be a pandas df")
 
         if z_score == True:
             df_ = self.onlyFPKM(
@@ -712,12 +694,16 @@ class Papillon:
         if export == False:
             return
         elif export == True:
-            if type(thing) == pd.DataFrame:
+            try:
                 thing.to_excel(str(self.path + name + '.xls'),
                                sheet_name='Sheet1')
                 print("\nExported as " + name + ".xls\n")
-            elif type(thing) == sns.matrix.ClusterGrid or type(thing) == sns.axisgrid.FacetGrid:
+            except AttributeError:
+                pass
+            try:
                 thing.savefig(str(self.path + name + image_extension))
                 print("\nExported as " + name + image_extension)
+            except:
+                raise Exception("Export error")
         else:
             raise Exception("export= can be only 'False' or 'True'")
