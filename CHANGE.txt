@@ -1,3 +1,4 @@
+v 0.1.0, 09-01-18 -- Minor changes: improved code quality
 v 0.0.9, 05-01-18 -- Minor changes: in MANIFEST.in to include license and test_files. Compatible with conda forge
 v 0.0.8, 03-01-18 -- Minor changes: improved test coverage, now papillon.py is a module and not a package
 v 0.0.7, 19-12-17 -- Minor changes: added docs

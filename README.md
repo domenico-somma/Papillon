@@ -19,6 +19,11 @@ You can use Papillon with any Scientific IDE, and install it using Pypi:
 
     pip install papillon
 
+or Anaconda with conda-forge channel:
+
+    conda config --add channels conda-forge
+    conda install papillon
+
 ## Usage
 
 [Quick Tutorial](https://github.com/domenico-somma/Papillon/wiki/Quick-Tutorial).
