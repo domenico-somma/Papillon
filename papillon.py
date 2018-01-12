@@ -15,6 +15,16 @@ if LooseVersion(sns.__version__) < LooseVersion("0.8.1"):
     raise Exception("Seaborn >= 0.8.1 required")
 
 
+def read_db(path, drop_comparison=[]):
+    """
+    Read the cummeRbund Database.
+    path - accept a str with the folder path, containing the cummeRbund files
+    drop_comparison - drop comparison (str) or list of comparisons and
+                      re-calculate significant genes/isoforms
+    """
+    return Papillon(path, drop_comparison)
+    
+
 def _FPKM(name_list):
     """Either append or remove '_FPKM' to a string or an iterable"""
     try:
@@ -60,19 +70,10 @@ def _obtain_list(genelist, path):  # To add eventually remove empty one
     return gene_list
 
 
-def read_db(path, drop_comparison=[]):
-    """
-    Read the cummeRbund Database.
-    path - accept a str with the folder path, containing the cummeRbund files
-    drop_comparison - drop comparison (str) or list of comparisons and
-                      re-calculate significant genes/isoforms
-    """
-    return Papillon(path, drop_comparison)
-
-
-class Papillon:
-
-    def __init__(self, path, drop_comparison=[]):
+class PapillonBuilder:
+    """Extract info from cummeRbund tables"""
+    
+    def __init__(self, path, drop_comparison=[]): # To do - separate __init__ in at least 2 functions
         """
         read cummeRbund files and return:
         self.path - files path
@@ -118,6 +119,11 @@ class Papillon:
                                              delimiter='\t', index_col=0)
             except:
                 raise("File not found")
+                
+#        try:
+#            self._find_galaxy()
+#        except:
+#            self._find_cummerbund()
 
         self.path = str(path + "/Papillon/")
         if not os.path.exists(self.path):
@@ -174,6 +180,29 @@ class Papillon:
             del self.isoform_diff
             del self.gene_fpkm
             del self.gene_diff
+    
+    def __str__(self):
+        a = "Samples: " + str(self.samples) + "\n"
+        b = "Comparison: " + str(self.comparison) + "\n"
+        c = "Genes Detected: " + str(len(self.genes_detect)) + "\n"
+        d = "Genes differential expressed: " + \
+            str(len(self.genes_significant)) + "\n"
+        e = "Isoform Detected: " + str(len(self.isoforms_detect)) + "\n"
+        f = "Isoform differential expressed: " + \
+            str(len(self.isoforms_significant)) + "\n"
+        try:
+            g = str(len(self.selected)) + " " + \
+                self.type_selected + " selected\n"
+        except:
+            g = "None of the genes is selected"
+        visual = a + b + c + d + e + f + g
+        return visual
+
+#    def _find_galaxy(self):
+#        pass
+
+#    def _find_cummerbund(self):
+#        pass      
 
     def _gene_or_isoform(self, what):
         """Users should not use this function directly.
@@ -182,18 +211,6 @@ class Papillon:
             return self.gene_fpkm, self.gene_diff
         elif what == "isoform":
             return self.isoform_fpkm, self.isoform_diff
-
-    @staticmethod
-    def _significant(df_detected, comparison, what):
-        """Users should not use this function directly.
-        Calculate significant expressed genes.
-        """
-        if what not in ["gene", "isoform"]:
-            raise Exception("what= not known")
-        df_significant = df_detected[
-            df_detected.loc[:, comparison].any(axis=1)]
-        print("\n\tSignificant expressed ", what + "s: ", len(df_significant))
-        return df_significant
 
     def _generate_df(self, what):
         """Users should not use this function directly.
@@ -223,6 +240,18 @@ class Papillon:
 
         df_significant = self._significant(df_detected, self.comparison, what)
         return df_detected, df_significant
+        
+    @staticmethod
+    def _significant(df_detected, comparison, what):
+        """Users should not use this function directly.
+        Calculate significant expressed genes.
+        """
+        if what not in ["gene", "isoform"]:
+            raise Exception("what= not known")
+        df_significant = df_detected[
+            df_detected.loc[:, comparison].any(axis=1)]
+        print("\n\tSignificant expressed ", what + "s: ", len(df_significant))
+        return df_significant
 
     def _compare(self):
         """
@@ -256,23 +285,30 @@ class Papillon:
             if n < 50 and n > 0:
                 print(set(isoforms_not_found))
         return genes_not_found, isoforms_not_found, n  # Only for tests so far.
+    
+class Papillon_db(PapillonBuilder):
+    """Make a Papillon_db object and permit to change some values"""
+    
+    # Add the function to export the Papillon_db (as table? as sqlite)    
+    
+    def selected_exist(self, remove=False):
+        """Check if self.selected exists"""
+        if remove == True:
+            try:
+                del self.df_detected
+                del self.type_selected
+            except:
+                pass
+        elif remove == False:
+            try:
+                self.selected
+                return True
+            except AttributeError:
+                raise Exception("No gene selected")
+        else:
+            raise Exception("Remove= value not known")
 
-    def __str__(self):
-        a = "Samples: " + str(self.samples) + "\n"
-        b = "Comparison: " + str(self.comparison) + "\n"
-        c = "Genes Detected: " + str(len(self.genes_detect)) + "\n"
-        d = "Genes differential expressed: " + \
-            str(len(self.genes_significant)) + "\n"
-        e = "Isoform Detected: " + str(len(self.isoforms_detect)) + "\n"
-        f = "Isoform differential expressed: " + \
-            str(len(self.isoforms_significant)) + "\n"
-        try:
-            g = str(len(self.selected)) + " " + \
-                self.type_selected + " selected\n"
-        except:
-            g = "None of the genes is selected"
-        visual = a + b + c + d + e + f + g
-        return visual
+    # Modify functions:
 
     def dropComparison(self, comparison):
         """Drop Comparison (str) or list of comparisons and re-calculate
@@ -320,6 +356,11 @@ class Papillon:
         self.genes_significant = self.genes_significant[cols]
         self.isoforms_detect = self.isoforms_detect[cols]
         self.isoforms_significant = self.isoforms_significant[cols]
+        
+class Papillon(Papillon_db):
+    """Select and plot genes/isoforms from a Papillon_db""" 
+
+    # Select genes functions
 
     def _select(self, genelist, what, comparison, sign):
         """Users should not use this function directly.
@@ -422,6 +463,102 @@ class Papillon:
         self._export(self.selected, name="selected_isoform", export=export)
         # return proprio selected?
         # Return number genes searched, not found
+    
+    def search(self, word, where, how="table", export=False):
+        """
+        search among genes/isoforms names in detected and significant
+        word - accept a str to search among the gene names
+        where - accept:
+            "genes_detected"
+            "genes_significant"
+            "isoforms_detected"
+            "isoforms_significant"
+
+        how - accept:
+            "table" return the dataframe with the genes found
+            "list" return a list of names, no duplicates
+            "selected" put the genes found among the differential expressed
+                       genes in self.selected (to plot),
+                       working only with where="significant"
+        """
+
+        def df_or_list(df_, how_):
+            if how_ == "table":
+                return df_
+            elif how_ == "list":
+                names = list(set(df_["gene_short_name"]))
+                print(names)
+                return names
+
+        # Checking input
+        if where not in ["genes_detected", "genes_significant", "isoforms_detected", "isoforms_significant"]:
+            raise Exception("where= not known")
+        elif how not in ["table", "list", "selected"]:
+            raise Exception("how= not known")
+        else:
+            pass
+        word1, word2 = where.split("_")
+        if word1 == "genes":
+            df = self.genes_detect[self.genes_detect["gene_short_name"].str.contains(
+                word)]
+            df_sig = self.genes_significant[self.genes_significant["gene_short_name"].str.contains(
+                word)]
+        elif word1 == "isoforms":
+            df = self.isoforms_detect[self.isoforms_detect["gene_short_name"].str.contains(
+                word)]
+            df_sig = self.isoforms_significant[self.isoforms_significant["gene_short_name"].str.contains(
+                word)]
+
+        if len(df) == 0:
+            print(word, " not found")
+            return
+        else:
+            print(len(df), " genes/isoforms detected.")
+        if len(df_sig) == 0:
+            print(
+                "None of these are differentially expressed among the samples")
+        else:
+            print(len(df_sig), " differential expressed.")
+
+        if how == "selected":
+            if word2 != "significant":
+                raise Exception(
+                    'how == "selected", but only significant genes/isoforms can be selected.')
+            elif word2 == "significant":
+                found = df_sig.copy()
+                self.selected = found.copy()
+        elif word2 == "detected":
+            print("Detected genes preview available")
+            found = df_or_list(df, how)
+        elif word2 == "significant":
+            print("Differential expressed genes preview available")
+            found = df_or_list(df_sig, how)
+
+        self._export(found, export=export, name="search_result")
+        return found
+
+    def _export(self, thing, export, name=None, image_extension=".png"):  # add .pdf?
+        """
+        Manage dataframe or image export parameter.
+        Users should not use this function directly"""
+        if export == False:
+            return
+        elif export == True:
+            try:
+                thing.to_excel(str(self.path + name + '.xls'),
+                               sheet_name='Sheet1')
+                print("\nExported as " + name + ".xls\n")
+            except AttributeError:
+                pass
+            try:
+                thing.savefig(str(self.path + name + image_extension))
+                print("\nExported as " + name + image_extension)
+            except:
+                raise Exception("Export error")
+        else:
+            raise Exception("export= can be only 'False' or 'True'")
+
+    # Plot functions
 
     @staticmethod
     def _fusion_gene_id(df, type_selected, change_index=False):
@@ -471,23 +608,6 @@ class Papillon:
                 mydic[_FPKM(self.samples[n])] = self.samples[n]
             df.rename(columns=mydic, inplace=True)
         return df
-
-    def selected_exist(self, remove=False):
-        """Check if self.selected exists"""
-        if remove == True:
-            try:
-                del self.df_detected
-                del self.type_selected
-            except:
-                pass
-        elif remove == False:
-            try:
-                self.selected
-                return True
-            except AttributeError:
-                raise Exception("No gene selected")
-        else:
-            raise Exception("Remove= value not known")
 
     def heatmap(self, z_score=True, col_cluster=False, method="complete", cmap="seismic", export=False, **options):
         """Generate heatmap using selected genes/isoforms
@@ -594,81 +714,8 @@ class Papillon:
         g.fig.suptitle(title)
         self._export(g, export=export, name="Plot")
         return g
-
-    def search(self, word, where, how="table", export=False):
-        """
-        search among genes/isoforms names in detected and significant
-        word - accept a str to search among the gene names
-        where - accept:
-            "genes_detected"
-            "genes_significant"
-            "isoforms_detected"
-            "isoforms_significant"
-
-        how - accept:
-            "table" return the dataframe with the genes found
-            "list" return a list of names, no duplicates
-            "selected" put the genes found among the differential expressed
-                       genes in self.selected (to plot),
-                       working only with where="significant"
-        """
-
-        def df_or_list(df_, how_):
-            if how_ == "table":
-                return df_
-            elif how_ == "list":
-                names = list(set(df_["gene_short_name"]))
-                print(names)
-                return names
-
-        # Checking input
-        if where not in ["genes_detected", "genes_significant", "isoforms_detected", "isoforms_significant"]:
-            raise Exception("where= not known")
-        elif how not in ["table", "list", "selected"]:
-            raise Exception("how= not known")
-        else:
-            pass
-        word1, word2 = where.split("_")
-        if word1 == "genes":
-            df = self.genes_detect[self.genes_detect["gene_short_name"].str.contains(
-                word)]
-            df_sig = self.genes_significant[self.genes_significant["gene_short_name"].str.contains(
-                word)]
-        elif word1 == "isoforms":
-            df = self.isoforms_detect[self.isoforms_detect["gene_short_name"].str.contains(
-                word)]
-            df_sig = self.isoforms_significant[self.isoforms_significant["gene_short_name"].str.contains(
-                word)]
-
-        if len(df) == 0:
-            print(word, " not found")
-            return
-        else:
-            print(len(df), " genes/isoforms detected.")
-        if len(df_sig) == 0:
-            print(
-                "None of these are differentially expressed among the samples")
-        else:
-            print(len(df_sig), " differential expressed.")
-
-        if how == "selected":
-            if word2 != "significant":
-                raise Exception(
-                    'how == "selected", but only significant genes/isoforms can be selected.')
-            elif word2 == "significant":
-                found = df_sig.copy()
-                self.selected = found.copy()
-        elif word2 == "detected":
-            print("Detected genes preview available")
-            found = df_or_list(df, how)
-        elif word2 == "significant":
-            print("Differential expressed genes preview available")
-            found = df_or_list(df_sig, how)
-
-        self._export(found, export=export, name="search_result")
-        return found
-
-    def _import_excel(self, filename, type_selected):
+    
+    def __import_excel(self, filename, type_selected):
         """Only for testing. Users should not use this function directly"""
         if type_selected not in ["gene", "isoform"]:
             raise Exception("type_selected can be only 'gene' or 'isoform'")
@@ -686,24 +733,3 @@ class Papillon:
                 self.selected.head(),
                 len(self.selected.columns)
             )
-
-    def _export(self, thing, export, name=None, image_extension=".png"):  # add .pdf?
-        """
-        Manage dataframe or image export parameter.
-        Users should not use this function directly"""
-        if export == False:
-            return
-        elif export == True:
-            try:
-                thing.to_excel(str(self.path + name + '.xls'),
-                               sheet_name='Sheet1')
-                print("\nExported as " + name + ".xls\n")
-            except AttributeError:
-                pass
-            try:
-                thing.savefig(str(self.path + name + image_extension))
-                print("\nExported as " + name + image_extension)
-            except:
-                raise Exception("Export error")
-        else:
-            raise Exception("export= can be only 'False' or 'True'")
