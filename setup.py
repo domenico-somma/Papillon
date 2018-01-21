@@ -8,9 +8,9 @@ from setuptools import setup
 
 setup(
     name='papillon',
-    version='0.1.0',
+    version='0.1.1',
     py_modules=['papillon'],
-    description='A Python module to read and plot Galaxy RNA-seq data',
+    description='A Python module to read and plot (cuffdiff) Galaxy RNA-seq data',
     author='Domenico Somma',
     author_email='domenico.somma@glasgow.ac.uk',
     license='Mozilla Public License 2.0',

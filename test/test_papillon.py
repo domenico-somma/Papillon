@@ -29,7 +29,7 @@ current_directory = os.path.dirname(path_to_current_file)
 os.chdir(current_directory)
 
 path="Test_files"
-test=pp.read_db(path)
+test=pp.read_folder(path)
 
 
 class papillon_Test(unittest.TestCase):
@@ -49,7 +49,7 @@ class papillon_Test(unittest.TestCase):
         self.assertEqual(len(pp._obtain_list("test49.list",test.path)),49)
         self.assertEqual(pp._obtain_list(["ciao","hello"],"fake path"),["ciao","hello"])
    
-    def test_read_db(self):
+    def test_read_folder(self):
         samples_test=['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']
         self.assertTrue(test.samples==samples_test)
         comparison_test=['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 
@@ -226,7 +226,7 @@ class papillon_Test(unittest.TestCase):
         self.assertEqual(list(df[0]),[0.0, 0.0, 4.0, 0.0])
         a=list(df[-1])
         b=[0.016800, 0.0, 0.0, 0.0]
-        self.failUnlessAlmostEqual(a[0],b[0], places=0)
+        self.assertAlmostEqual(a[0],b[0], places=0)
         
         #testing remove_FPKM_name
         df=test.onlyFPKM("df",extra_df=extra_df, remove_FPKM_name=True)
@@ -258,7 +258,7 @@ class papillon_Test(unittest.TestCase):
         df1=zscore(df, axis=1, ddof=1)
         df2=test._z_score(df)
         df2=test.onlyFPKM("array",extra_df=df2)
-        self.failUnlessAlmostEqual(df1.all(), df2.all(), places=0)
+        self.assertAlmostEqual(df1.all(), df2.all(), places=0)
     
     def test_search(self):
         search_result=test.search(word="IL6",where="genes_detected", how="list")
@@ -359,16 +359,16 @@ class papillon_Test(unittest.TestCase):
     
     def test_drop_comparison(self):
         def drop(comp):
-            test2=pp.read_db(path,drop_comparison=comp)
-            test3=pp.read_db(path)
+            test2=pp.read_folder(path,drop_comparison=comp)
+            test3=pp.read_folder(path)
             test3.dropComparison(comp)
             df1=test2.genes_significant.all()
             df2=test3.genes_significant.all()
             self.assertTrue(df1.all()==df2.all())
 
         def multidrop(comp):
-            test2=pp.read_db(path)
-            test3=pp.read_db(path)
+            test2=pp.read_folder(path)
+            test3=pp.read_folder(path)
             test2.dropComparison(comp)
             for c in comp:
                 test3.dropComparison(c)
@@ -455,21 +455,21 @@ class papillon_Test(unittest.TestCase):
         test.get_gene()
         
         plot_maker("gene",False)
-        test.plot(export=True)
+        test.lineplot(export=True)
         image_check()
         
         plot_maker("gene",True)
-        test.plot(export=True,z_score=True)
+        test.lineplot(export=True,z_score=True)
         image_check()
         
         test.get_isoform()
         
         plot_maker("isoform",False)
-        test.plot(export=True)
+        test.lineplot(export=True)
         image_check()
         
         plot_maker("isoform",True)
-        test.plot(export=True,z_score=True)
+        test.lineplot(export=True,z_score=True)
         image_check()
     
     def test_heatmap(self):

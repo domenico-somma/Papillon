@@ -1,5 +1,5 @@
 # Papillon
-A python alternative to [cummeRbund](http://compbio.mit.edu/cummeRbund/) to read and plot [Galaxy](https://usegalaxy.org/) RNA-seq data 
+A python alternative to [cummeRbund](http://compbio.mit.edu/cummeRbund/) to read and plot [Galaxy](https://usegalaxy.org/)/cuffdiff RNA-seq data 
 
 ![Preview](https://user-images.githubusercontent.com/34346930/34152979-4c3dae42-e4a8-11e7-9259-005a016edb53.png)
 
