@@ -482,8 +482,8 @@ class papillon_Test(unittest.TestCase):
         
         test.get_gene()
         
-        with self.assertWarns(DeprecationWarning):
-            test.plot()
+#        with self.assertWarns(DeprecationWarning):
+#            test.plot()
         
         plot_maker("gene",False)
         test.lineplot(export=True)
