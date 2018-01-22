@@ -35,7 +35,7 @@ Commands
 Functions:
 ----------
 
-``read_db(path, drop_comparison=[])``
+``read_folder(path, drop_comparison=[])``
 
 Read the cuffdiff/cummeRbund files. Return a class papillon.
 
@@ -53,7 +53,41 @@ i.e.:
 
      import papillon as pl
 
-     MyExp=pl.read_db("My Experiment", drop_comparison=["Sample 1_vs_Sample 2","Sample 3_vs_Sample 4"])
+     MyExp=pl.read_folder("My Experiment", drop_comparison=["Sample 1_vs_Sample 2","Sample 3_vs_Sample 4"])
+
+--------------
+
+
+``read_files(files, path=None, drop_comparison=None)``
+
+Accept cuffdiff/cummeRbund files as iterable. Return a class papillon.
+
+**files**: *iterable*
+
+iterable with cuffdiff files
+
+**path**: *str*
+
+folder path where export Papillon generated files
+
+**drop\_comparison**: *str or iterable*
+
+what comparison do not import
+
+i.e.:
+
+::
+
+     import papillon as pl
+
+     MyExp=pl.read_files(["file1.tab","file2.tab","file3.tab","file4.tab",],"My Experiment")
+
+--------------
+
+
+``read_db`` is deprecated
+
+--------------
 
 
 Class:
@@ -321,7 +355,7 @@ i.e.:
 
 --------------
 
-**self.plot(self, title="", legend=True, z_score=False, export=False, df=None, size=10, **option)**
+**self.lineplot(self, title="", legend=True, z_score=False, export=False, df=None, size=10, **option)**
 
 Create a lineplot with self.selected. Max number of genes/isoforms is
 200.
@@ -368,11 +402,15 @@ i.e.:
 
      MyExp.get_isoform()
 
-     MyExp.plot()
+     MyExp.lineplot()
 
-     MyExp.plot(title="My genes", legend=False)
+     MyExp.lineplot(title="My genes", legend=False)
 
-     MyExp.heatmap(z_score=True, export=True)
+     MyExp.lineplot(z_score=True, export=True)
+
+--------------
+
+**self.plot** is deprecated
 
 --------------
 

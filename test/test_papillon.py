@@ -29,10 +29,19 @@ current_directory = os.path.dirname(path_to_current_file)
 os.chdir(current_directory)
 
 path="Test_files"
-test=pp.read_db(path)
+test=pp.read_folder(path)
 
 
 class papillon_Test(unittest.TestCase):
+    def test_different_read(self):
+        with self.assertRaises(FileNotFoundError):
+            pp.read_folder("Not working")
+        pp.read_folder(path)
+        pp.read_folder(path+"/galaxy")
+        pp.read_files([path+"/gene_exp.diff",path+"/genes.fpkm_tracking",path+"/isoform_exp.diff",path+"/isoforms.fpkm_tracking"])
+#        with self.assertWarns(DeprecationWarning):
+#            pp.read_db(path)
+    
     def test_functions_FPKM(self):
         self.assertEqual(pp._FPKM("ciao"),"ciao_FPKM")
         self.assertEqual(pp._FPKM("ciao_FPKM"),"ciao")
@@ -49,7 +58,8 @@ class papillon_Test(unittest.TestCase):
         self.assertEqual(len(pp._obtain_list("test49.list",test.path)),49)
         self.assertEqual(pp._obtain_list(["ciao","hello"],"fake path"),["ciao","hello"])
    
-    def test_read_db(self):
+    def test_read_folder(self):
+        test=pp.read_folder(path)
         samples_test=['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']
         self.assertTrue(test.samples==samples_test)
         comparison_test=['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 
@@ -65,9 +75,21 @@ class papillon_Test(unittest.TestCase):
         c=len(test.isoforms_detect.columns)
         d=len(test.isoforms_significant.columns)
         self.assertTrue(a==b and b==c and c==d and d==18)
-#        printable="Samples: ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']\nComparison: ['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']\nGenes Detected: 5\nGenes differential expressed: 3\nIsoform Detected: 28\nIsoform differential expressed: 5\nNone of the genes is selected\n"
-#        print(test.__str__(),"\n",printable)
-#        self.assertTrue(test.__str__()==printable)
+        print_test=pp.read_folder(path)
+        printable="Samples: ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']\nComparison: ['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']\nGenes Detected: 5\nGenes differential expressed: 3\nIsoform Detected: 28\nIsoform differential expressed: 5\nNone of the genes is selected"
+        print(print_test.__str__(),"\n",printable)
+        self.assertTrue(print_test.__str__()==printable)
+        del print_test
+        
+    def test_selected_exist(self):
+        test2=pp.read_folder(path)  
+        with self.assertRaises(Exception):
+            test2.selected_exist()
+        with self.assertRaises(Exception):
+            test2.selected_exist(remove="Wrong")
+        test2.get_gene()
+        self.assertTrue(test2.selected_exist())
+        del test2
 
     def test_get_gene(self):
         test.get_gene()
@@ -113,6 +135,13 @@ class papillon_Test(unittest.TestCase):
         test.get_gene()
         self.assertEqual(len(test.selected),3)
         self.assertEqual(len(test.selected.columns),18)
+        
+        with self.assertRaises(Exception):
+            test.get_gene(comparison="Sample 1_vs_Sample 2", sign="Wrong")
+        with self.assertRaises(Exception):
+            test.get_gene(sign=">")
+        with self.assertRaises(Exception):
+            test.get_gene(comparison="Wrong")
 
     def test_get_isoform(self):
         test.get_isoform()
@@ -174,6 +203,7 @@ class papillon_Test(unittest.TestCase):
         self.assertEqual(len(test.selected.columns),18)
     
     def test_onlyFPKM(self):
+        test=pp.read_folder(path)
         test.get_isoform()
         df=test.onlyFPKM("df")
         self.assertTrue(type(df)==pd.DataFrame)
@@ -226,7 +256,7 @@ class papillon_Test(unittest.TestCase):
         self.assertEqual(list(df[0]),[0.0, 0.0, 4.0, 0.0])
         a=list(df[-1])
         b=[0.016800, 0.0, 0.0, 0.0]
-        self.failUnlessAlmostEqual(a[0],b[0], places=0)
+        self.assertAlmostEqual(a[0],b[0], places=0)
         
         #testing remove_FPKM_name
         df=test.onlyFPKM("df",extra_df=extra_df, remove_FPKM_name=True)
@@ -258,7 +288,7 @@ class papillon_Test(unittest.TestCase):
         df1=zscore(df, axis=1, ddof=1)
         df2=test._z_score(df)
         df2=test.onlyFPKM("array",extra_df=df2)
-        self.failUnlessAlmostEqual(df1.all(), df2.all(), places=0)
+        self.assertAlmostEqual(df1.all(), df2.all(), places=0)
     
     def test_search(self):
         search_result=test.search(word="IL6",where="genes_detected", how="list")
@@ -359,16 +389,16 @@ class papillon_Test(unittest.TestCase):
     
     def test_drop_comparison(self):
         def drop(comp):
-            test2=pp.read_db(path,drop_comparison=comp)
-            test3=pp.read_db(path)
+            test2=pp.read_folder(path,drop_comparison=comp)
+            test3=pp.read_folder(path)
             test3.dropComparison(comp)
             df1=test2.genes_significant.all()
             df2=test3.genes_significant.all()
             self.assertTrue(df1.all()==df2.all())
 
         def multidrop(comp):
-            test2=pp.read_db(path)
-            test3=pp.read_db(path)
+            test2=pp.read_folder(path)
+            test3=pp.read_folder(path)
             test2.dropComparison(comp)
             for c in comp:
                 test3.dropComparison(c)
@@ -385,6 +415,14 @@ class papillon_Test(unittest.TestCase):
         multidrop(["Sample 1_vs_Sample 2","Sample 1_vs_Sample 3"])
         multidrop(["Sample 1_vs_Sample 2","Sample 3_vs_Sample 4"])
         multidrop(["Sample 1_vs_Sample 4","Sample 2_vs_Sample 4","Sample 2_vs_Sample 3"])
+
+        with self.assertRaises(Exception):
+            pp.read_folder(path,drop_comparison="Wrong")
+
+        test2=pp.read_folder(path)
+        with self.assertRaises(Exception):
+            test2.dropComparison("Wrong")
+        del test2
     
     def test_change_samples_order(self):
         test.change_order(["Sample 4","Sample 3","Sample 2","Sample 1"])
@@ -402,20 +440,10 @@ class papillon_Test(unittest.TestCase):
         d=len(test.isoforms_significant.columns)
         self.assertTrue(a==b and b==c and c==d and d==18)
 
-        test.change_order(["Sample 1","Sample 2","Sample 3","Sample 4"])
-        samples_test=['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']
-        self.assertTrue(test.samples==samples_test)
-        comparison_test=['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']
-        self.assertTrue(test.comparison==comparison_test)
-        self.assertEqual(len(test.genes_detect),5)
-        self.assertEqual(len(test.genes_significant),3)
-        self.assertEqual(len(test.isoforms_detect),28)
-        self.assertEqual(len(test.isoforms_significant),5)
-        a=len(test.genes_detect.columns)
-        b=len(test.genes_significant.columns)
-        c=len(test.isoforms_detect.columns)
-        d=len(test.isoforms_significant.columns)
-        self.assertTrue(a==b and b==c and c==d and d==18)
+        with self.assertRaises(Exception):
+            test.change_order(["Sample 4","Sample 3","Sample 2"])
+        with self.assertRaises(Exception):
+            test.change_order(["Sample 4","Sample 3","Sample 2","Wrong"])
 
     def test_plots(self):
         
@@ -454,22 +482,25 @@ class papillon_Test(unittest.TestCase):
         
         test.get_gene()
         
+#        with self.assertWarns(DeprecationWarning):
+#            test.plot()
+        
         plot_maker("gene",False)
-        test.plot(export=True)
+        test.lineplot(export=True)
         image_check()
         
         plot_maker("gene",True)
-        test.plot(export=True,z_score=True)
+        test.lineplot(export=True,z_score=True)
         image_check()
         
         test.get_isoform()
         
         plot_maker("isoform",False)
-        test.plot(export=True)
+        test.lineplot(export=True)
         image_check()
         
         plot_maker("isoform",True)
-        test.plot(export=True,z_score=True)
+        test.lineplot(export=True,z_score=True)
         image_check()
     
     def test_heatmap(self):

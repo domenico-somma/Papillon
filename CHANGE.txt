@@ -1,3 +1,6 @@
+v 0.1.1, 21-01-18 -- Minor changes: 
+add python 3 restriction, add the function to load directly the cuffdiff files, changed function names: self.read_db() -> self.read_folder() and self.plot() -> self.lineplot(),improved code quality (tried to follow the single responsibility principle), removed some potential bugs. 
+
 v 0.1.0, 09-01-18 -- Minor changes: improved code quality
 v 0.0.9, 05-01-18 -- Minor changes: in MANIFEST.in to include license and test_files. Compatible with conda forge
 v 0.0.8, 03-01-18 -- Minor changes: improved test coverage, now papillon.py is a module and not a package

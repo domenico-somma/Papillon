@@ -2,6 +2,7 @@ include docs/*.*
 include test/*.py
 include test/Test_files/*.*
 include test/Test_files/Papillon/*.list
+include test/Test_files/galaxy/*.*
 include AUTHORS.md
 include CHANGE.txt
 include CONTRIBUTING.md
