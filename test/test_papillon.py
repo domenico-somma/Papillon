@@ -39,8 +39,8 @@ class papillon_Test(unittest.TestCase):
         pp.read_folder(path)
         pp.read_folder(path+"/galaxy")
         pp.read_files([path+"/gene_exp.diff",path+"/genes.fpkm_tracking",path+"/isoform_exp.diff",path+"/isoforms.fpkm_tracking"])
-        with self.assertWarns(DeprecationWarning):
-            pp.read_db(path)
+#        with self.assertWarns(DeprecationWarning):
+#            pp.read_db(path)
     
     def test_functions_FPKM(self):
         self.assertEqual(pp._FPKM("ciao"),"ciao_FPKM")
