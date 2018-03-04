@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""A python version of CummeRbund
-to read and plot Galaxy/cuffdiff RNA-seq data"""
+"""A python version of CummeRbund to read and plot Galaxy/cuffdiff RNA-seq data"""
 
 import os
 import warnings
@@ -18,12 +17,9 @@ if LooseVersion(sns.__version__) < LooseVersion("0.8.1"):
 
 
 def read_db(path, drop_comparison=None):
-    "Use read_folder() instead. read_db() will not work in the future"
+    """Deprecated. Use read_folder()"""
     warnings.warn(
-        'Use read_folder() instead. read_db() will not work in the future', DeprecationWarning)
-    if drop_comparison is None:
-        drop_comparison = []
-    return read_folder(path, drop_comparison)
+        "read_db() deprecated. Use read_folder() instead.", DeprecationWarning)
 
 
 def read_folder(path, drop_comparison=None):
@@ -35,7 +31,6 @@ def read_folder(path, drop_comparison=None):
     re-calculate significant genes/isoforms"""
     if drop_comparison is None:
         drop_comparison = []
-
     try:
         isoform_fpkm = pd.read_csv(
             str(path + "/isoforms.fpkm_tracking"),
@@ -104,6 +99,9 @@ def read_files(files, path=None, drop_comparison=None):
 
     return _papillon_builder(isoform_fpkm, isoform_diff, gene_fpkm, gene_diff, path, drop_comparison)
 
+def _make_folder(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
 
 def _papillon_builder(isoform_fpkm, isoform_diff, gene_fpkm, gene_diff, path, drop_comparison):
     """Accept cuffdiff/cummeRbund files, check whether the files are correct,
@@ -135,9 +133,7 @@ def _papillon_builder(isoform_fpkm, isoform_diff, gene_fpkm, gene_diff, path, dr
         path = "Papillion/"
     else:
         path = str(path + "/Papillon/")
-    if not os.path.exists(path):
-        os.makedirs(path)
-        # TO DO - add check if the folder is moved after creation
+    _make_folder(path)
 
     print("Creating dataframe...")
     # find samples name (using isoforms, but it's the same with genes)
@@ -184,7 +180,7 @@ def _papillon_builder(isoform_fpkm, isoform_diff, gene_fpkm, gene_diff, path, dr
     isoforms_detect, isoforms_significant = _generate_df(
         "isoform", samples, gene_fpkm, gene_diff, isoform_fpkm, isoform_diff, comparisons)
 
-    return Papillon(path, samples, comparisons, genes_detect, genes_significant, isoforms_detect, isoforms_significant)
+    return Papillon_db(path, samples, comparisons, genes_detect, genes_significant, isoforms_detect, isoforms_significant)
 
     # Not working now - to fix to easy add features
 #    if __name__ == "__main__":
@@ -314,19 +310,12 @@ class Papillon_db:
         e = "Isoform Detected: " + str(len(self.isoforms_detect)) + "\n"
         f = "Isoform differential expressed: " + \
             str(len(self.isoforms_significant)) + "\n"
-        try:
-            g = str(len(self.selected)) + " " + \
-                self.type_selected + " selected\n"
-        except AttributeError:
-            g = "None of the genes is selected"
-        visual = a + b + c + d + e + f + g
+        visual = a + b + c + d + e + f
         return visual
 
     @staticmethod
     def _significant(df_detected, comparison, what):
-        """Users should not use this function directly.
-        Calculate significant expressed genes.
-        """
+        """Calculate significant expressed genes."""
         if what not in ["gene", "isoform"]:
             raise Exception("what= not known")
         df_significant = df_detected[
@@ -335,10 +324,7 @@ class Papillon_db:
         return df_significant
 
     def _compare(self):
-        """
-        Users should not use this function directly.
-        Compare genes and isoforms significantly expressed
-        """
+        """Compare genes and isoforms significantly expressed"""
         genes = list(self.genes_significant["gene_short_name"])
         isoforms = list(self.isoforms_significant["gene_short_name"])
         genes_not_found = []
@@ -367,28 +353,6 @@ class Papillon_db:
                 print(set(isoforms_not_found))
         return genes_not_found, isoforms_not_found, n  # Only for tests so far.
 
-    def selected_exist(self, remove=False):
-        """Check if self.selected exists
-
-        remove: True/False. If True remove self.selected and self.type_selected
-        """
-        if remove is True:
-            try:
-                del self.selected
-                del self.type_selected
-            except AttributeError:
-                pass
-        elif remove is False:
-            try:
-                self.selected
-                return True
-            except AttributeError:
-                raise Exception("No gene selected")
-        else:
-            raise Exception("Remove= value not known")
-
-    # Modify functions:
-
     def dropComparison(self, comparison):
         """Drop Comparison (str) or list of comparisons and re-calculate
         df_significant
@@ -403,7 +367,6 @@ class Papillon_db:
                 del self.genes_detect[comp]
                 del self.genes_detect[str("q-value_" + comp)]
                 self.comparison.remove(comp)
-                self.selected_exist(remove=True)
                 print(comp, " removed")
             else:
                 raise Exception(comp, " not found, please double check it")
@@ -425,7 +388,6 @@ class Papillon_db:
         """Change the samples order
 
         new_order: list of samples order"""
-        self.selected_exist(remove=True)
         n_sampl = len(self.samples)
         if len(new_order) != n_sampl:
             raise Exception("Number of samples doesn't match")
@@ -440,124 +402,29 @@ class Papillon_db:
         self.genes_significant = self.genes_significant[cols]
         self.isoforms_detect = self.isoforms_detect[cols]
         self.isoforms_significant = self.isoforms_significant[cols]
-
-
-class Papillon(Papillon_db):
-    """Select and plot genes/isoforms from a Papillon_db
-
-    self.selected - gene/isoform selected
-    self.type_selected - either gene or isoform according with selection type
-    """
-
-    # Select genes functions
-
+        
     def _select(self, genelist, what, comparison, sign):
-        """Users should not use this function directly.
-        Part of get_gene/get_isoform function
-        """
+        """Part of get_gene/get_isoform function"""
+        
         if what != "gene" and what != "isoform":
             raise Exception("Only what=gene or what=isoform admitted")
-        self.type_selected = what
         gene_list = _obtain_list(genelist, path=self.path)
         if what == "gene":
             df = pd.DataFrame.copy(self.genes_significant)
         elif what == "isoform":
             df = pd.DataFrame.copy(self.isoforms_significant)
-
+        
+        n=0
         if gene_list != []:
-            df["Selected"] = [
-                True if name in gene_list else False for name in df["gene_short_name"]]
+            df["Selected"] = [True if name in gene_list else False for name in df["gene_short_name"]]
             df = df[df["Selected"] == True].iloc[:, :-1]
             for name in gene_list:
                 if name not in list(df["gene_short_name"]):
                     print("Gene name not found:\t", name)
-        self.selected = df.copy()
-        self._sub_select(comparison, sign)
-
-    def _sub_select(self, comparison, sign):
-        """Users should not use this function directly.
-        Part of get_gene/get_isoform function
-        """
-        ACCEPTED_SIGN = [">", "<", None]
-
-        if comparison is None:
-            if sign is None:
-                return
-            elif sign is not None:
-                raise Exception("Sign passed, but not comparison")
-        elif comparison is not None:
-            if sign not in ACCEPTED_SIGN:
-                raise Exception('Only ">" "<" usable.')
-            if comparison not in self.comparison:
-                raise Exception("Comparison not found")
-            self.selected = self.selected[self.selected[comparison] == True]
-            sample1, sample2 = _vs(comparison)
-            if sign == ">":
-                self.selected = self.selected[self.selected[
-                    _FPKM(sample1)] > self.selected[_FPKM(sample2)]]
-            elif sign == "<":
-                self.selected = self.selected[self.selected[_FPKM(
-                    sample1)] < self.selected[_FPKM(sample2)]]
-            return
-
-    def get_gene(self, genelist=None, comparison=None, sign=None, export=False):
-        """This function select genes. It creates
-
-        self.selected
-        self.type_selected="gene".
-
-        genelist - accept string (gene name), list of gene names or file
-                   with a list of gene names
-        comparison - accept only 1 comparison as str (already present in
-                     the data)
-        sign - usable in combination with comparison, accept either ">" or
-               "<"
-        export - True/False whether want or not export the dataframe of
-                 selected genes
-        """
-        self._select(genelist, "gene", comparison, sign)
-        # self.selected.set_index(["gene_short_name"], inplace=True,
-        # verify_integrity=True) #I don't know if could be useful
-        print("\nNumber of gene selected: ", len(self.selected))
-        self._export(self.selected, name="selected_gene", export=export)
-        # maybe should return selected to the class?
-        # To do - Return number genes not found
-
-    def get_isoform(self, genelist=None, comparison=None, sign=None, export=False, show_dup=False):
-        """This function select isoforms. It creates
-        self.selected
-        self.type_selected="isoform"
-
-        genelist - accept string (gene name), list of gene names or file
-                   with a list of gene names
-        comparison - accept only 1 comparison as str (already present in
-                     the data)
-        sign - usable in combination with comparison, accept either ">" or
-               "<"
-        export - True/False whether want or not export the dataframe of
-                 selected genes
-        show_dup - True/False whether want or not highlight duplicated
-                   isoforms for the same gene"""
-        self._select(genelist, "isoform", comparison, sign)
-
-        try:
-            del self.selected["duplicate"]
-        except KeyError: 
-            pass
-
-        if show_dup is True:
-            self.selected["duplicate"] = self.selected.duplicated(
-                "gene_short_name", keep=False)
-        else:
-            pass
-        # TO DO if remove_dup == True: # it'd remove the one with lower
-        # q-value. and if the q-values are the same???
-
-        print("\nNumber of isoform selected: ", len(self.selected))
-        self._export(self.selected, name="selected_isoform", export=export)
-        # maybe should return selected to the class?
-        # To do - Return number isoforms not found
-
+                    n+=1
+            print("Number of gene not found: ",n)
+        return df
+        
     def search(self, word, where, how="table", export=False):
         """search among genes/isoforms names in detected and significant
 
@@ -629,191 +496,120 @@ class Papillon(Papillon_db):
 
         self._export(found, export=export, name="search_result")
         return found
+    
+    def get_gene(self, genelist=None, comparison=None, sign=None):
+        """This function select genes. It creates a Papillon object
 
-    def _export(self, thing, export, name=None, image_extension=".png"):  # add .pdf?
+        genelist - accept string (1 gene name), list of gene names or file
+                   with a list of gene names
+        comparison - accept only 1 comparison as str (already present in
+                     the data)
+        sign - usable in combination with comparison, accept either ">" or
+               "<"
+        """
+        df = self._select(genelist, "gene", comparison, sign)
+        return Papillon(df, genelist, "gene", comparison, sign, self.path, self.samples)
+        # To do - Return number genes not found
+
+    def get_isoform(self, genelist=None, comparison=None, sign=None):
+        """This function select isoforms. It creates a Papillon object
+
+        genelist - accept string (gene name), list of gene names or file
+                   with a list of gene names
+        comparison - accept only 1 comparison as str (already present in
+                     the data)
+        sign - usable in combination with comparison, accept either ">" or
+               "<"
+        export - True/False whether want or not export the dataframe of
+                 selected genes"""
+        df = self._select(genelist, "isoform", comparison, sign)
+        return Papillon(df, genelist, "isoform", comparison, sign, self.path, self.samples)
+    
+    def _export(self, thing, export, name=None):
         """Manage dataframe or image export parameter."""
         if export is False: 
             return
         elif export is True:
-            try:
-                thing.to_excel(str(self.path + name + '.xls'),
-                               sheet_name='Sheet1')
-                print("\nExported as " + name + ".xls\n")
-            except AttributeError:
-                pass
-            try:
-                thing.savefig(str(self.path + name + image_extension))
-                print("\nExported as " + name + image_extension)
-            except:
-                raise Exception("Export error")
+            _make_folder(self.path)
+            thing.to_excel(str(self.path + name + '.xls'), sheet_name='Sheet1')
+            print("\nExported as " + name + ".xls\n")
         else:
             raise Exception("export= can be only 'False' or 'True'")
 
-    # Plot functions - should it be another class?
 
-    @staticmethod
-    def _fusion_gene_id(df, type_selected, change_index=False):
-        """Users should not use this function directly.
-        Append a "gene/ID" column to the dataframe, and use gene
-        name+id(index) as values, usable or not as index"""
-        # print(df)
-        if type_selected == "gene":
-            if change_index is True:
-                df.set_index('gene_short_name', inplace=True)
-            return df
-        elif type_selected == "isoform":
-            df["gene/ID"] = df['gene_short_name'].map(str) + "   " + df.index
-            if change_index is True:
-                df.set_index("gene/ID", inplace=True)
-                del df['gene_short_name']
-            return df
+class Papillon:
+    def __init__(self, df, genelist, what, comparison, sign, path, samples):
+        self.df=df
+        self.selected=df.copy()
+        self.genelist=genelist
+        self.what=what
+        self.comparison=comparison
+        self.sign=sign
+        self.path=path
+        self.samples=samples
+        self._sub_select(comparison, sign)
 
-    def onlyFPKM(self, return_as, **option):
-        """It uses self.selected or an extra_df and Return only FPKM columns.
+    def _sub_select(self, comparison, sign):
+        """ Part of get_gene/get_isoform function"""
+        
+        ACCEPTED_SIGN = [">", "<", None]
 
-        return as:
-            "df" - pandas DataFrame
-            "array" - numpy array
-            "gene name" - pandas DataFrame containing gene names
-
-        **option accept extra_df as exernal Pandas df"""
-        self.selected_exist()
-        df = self.selected.copy()
-        if isinstance(option.get("extra_df"), pd.DataFrame):
-            df = option.get("extra_df")
-        if return_as == "df":
-            df = df.loc[:, _FPKM(self.samples)]
-        elif return_as == "array":
-            df = df.loc[:, _FPKM(self.samples)].values
-        elif return_as == "gene name":
-            columns = ['gene_short_name'] + _FPKM(self.samples)
-            df = df.loc[:, columns]
+        if comparison is None:
+            if sign is None:
+                return
+            elif sign is not None:
+                raise Exception("Sign passed, but not comparison")
+        elif comparison is not None:
+            if sign not in ACCEPTED_SIGN:
+                raise Exception('Only ">" "<" usable.')
+            if comparison not in self.comparison:
+                raise Exception("Comparison not found")
+            self.selected = self.selected[self.selected[comparison] == True]
+            sample1, sample2 = _vs(comparison)
+            if sign == ">":
+                self.selected = self.selected[self.selected[
+                    _FPKM(sample1)] > self.selected[_FPKM(sample2)]]
+            elif sign == "<":
+                self.selected = self.selected[self.selected[_FPKM(
+                    sample1)] < self.selected[_FPKM(sample2)]]
+        print("\nNumber of ", self.what," selected: ", len(self.selected))
+        
+    def __str__(self):
+        a = "Samples: " + str(self.samples) + "\n"
+        b = "Comparison: " + str(self.comparison) + "\n"
+        c = "Number of "+ self.what + " selected: "+ str(len(self.df)) + "\n"
+        visual = a + b + c
+        return visual
+    
+            
+    def _export(self, thing, export, name=None):
+        """Manage dataframe or image export parameter."""
+        if export is False: 
+            return
+        elif export is True:
+            _make_folder(self.path)
+            thing.to_excel(str(self.path + name + '.xls'), sheet_name='Sheet1')
+            print("\nExported as " + name + ".xls\n")
         else:
-            raise Exception(
-                "Return_as not known. Only 'df','array','gene name'")
-
-        if option.get("remove_FPKM_name") is True:
-            mydic = {}
-            n = len(self.samples)
-            while n != 0:
-                n -= 1
-                mydic[_FPKM(self.samples[n])] = self.samples[n]
-            df.rename(columns=mydic, inplace=True)
-        return df
-
-    def heatmap(self, z_score=True, col_cluster=False, method="complete", cmap="seismic", export=False, **options):
-        """Generate heatmap using selected genes/isoforms
-        z_score - True/False whether want or not apply z-score normalization
-        col_cluster - True/False whether want or not cluster the samples
-        method - clustering algorithm - default is complete-linkage
-        cmap - map color
-        export - True/False whether want or not export the dataframe of
-                 selected genes
-        **options - all the options accepted by seaborn.clustermap
-        default metric is euclidean.
-        """
-        if len(self.samples) > 10:
-            raise Exception("High-dimensional data. Ronan et al., 2016")
-
-        self.selected_exist()
-
-        print("Number of genes", len(self.selected))
-        if len(self.selected) == 0:
-            return
-        df_heatmap = self.onlyFPKM(
-            return_as="gene name", remove_FPKM_name=True)
-
-        df_heatmap = self._fusion_gene_id(
-            df_heatmap, self.type_selected, change_index=True)
-
-        if z_score is True: 
-            z_score = 0
-        elif z_score is False: 
-            z_score = None
-        small = sns.clustermap(
-            df_heatmap, col_cluster=col_cluster, method=method, cmap=cmap, z_score=z_score, **options)
-        self._export(small, name="small-heatmap", export=export)
-        if len(df_heatmap) < 1000 and len(df_heatmap) > 25:
-            big = sns.clustermap(
-                df_heatmap, col_cluster=col_cluster, method=method, cmap=cmap,
-                z_score=z_score, figsize=((len(self.samples)), int(len(df_heatmap.index) / 4)), **options)
-            self._export(big, name="big-heatmap", export=export)
-        elif len(df_heatmap) > 1000:
-            print("Too many genes for a big heatmap")
-
-    @staticmethod
-    def _z_score(df):
-        """
-        Users should not use this function directly.
-        Z-score calculation
-        """
-        # I could use z_score from scipy, but I don't want add scipy dependence too.
-        # It would be:
-        # from scipy.stats import zscore
-        # zscore(a, axis=1, ddof=1)
-        print("Calculating Z Score...")
-        df_mean = df.mean(axis="columns")
-        df_std = df.std(axis="columns")
-        df = df.sub(df_mean, axis="index")
-        df = df.div(df_std, axis="index")
-        return df
-
-    def plot(self, title="", legend=True, z_score=False, export=False, df=None, size=10, ci=None, **option):
-        "Use self.lineplot() instead. self.plot() will not work in the future"
-        warnings.warn(
-            'Use self.lineplot() instead. self.plot() will not work in the future', DeprecationWarning)
-        self.lineplot(title="", legend=True, z_score=False,
-                      export=False, df=None, size=10, ci=None, **option)
-
-    def lineplot(self, title="", legend=True, z_score=False, export=False, df=None, size=10, ci=None, **option):
-        """
-        LinePlot selected genes expression levels. Max number of genes 200
-
-        title - accept a str as title of the plot
-        legend - True/False show the legend
-        z_score - True/False calculate the z-score normalization
-        export - True/False whether or not export the image
-        df - accept an exernal dataframe, different from self.selected
-        **options - all the options accepted by seaborn.factorplot"""
-
-        if df is None:
-            self.selected_exist()
-            df = self.selected.copy()
-
-        if z_score is True:
-            df_ = self.onlyFPKM(
-                extra_df=df, return_as="df", remove_FPKM_name=True)
-            df_norm = self._z_score(df_)
-            df_norm["gene_short_name"] = df["gene_short_name"]
-            df_ = df_norm.copy()
-        elif z_score is False:
-            df_ = self.onlyFPKM(
-                extra_df=df, return_as="gene name", remove_FPKM_name=True)
-
-        print("Number of genes to plot: ", len(df_))
-        if len(df_) > 50 and len(df_) < 200:
-            print("Too many genes. Legend not shown")
-            legend = False
-        elif len(df_) >= 200:
-            print("Too many genes. Plot not shown")
-            return
-
-        if self.type_selected == "gene":
-            hue = "gene_short_name"
-            df_ = self._fusion_gene_id(
-                df_, self.type_selected, change_index=False)
-        elif self.type_selected == "isoform":
-            hue = "gene/ID"  # Change this hue name
-            df_ = self._fusion_gene_id(
-                df_, self.type_selected, change_index=True)
-            df_ = df_.reset_index()
-        df = pd.melt(df_, id_vars=[hue], var_name="Sample", value_name="FPKM")
-        g = sns.factorplot(x="Sample", y="FPKM", hue=hue,
-                           data=df, ci=ci, size=size, legend=legend, **option)
-        g.fig.suptitle(title)
-        self._export(g, export=export, name="Plot")
-        return g
-
+            raise Exception("export= can be only 'False' or 'True'")
+    
+    def __getattr__(self, arg):
+        _plot=_Plot()
+        setattr(_plot, "pp", self)
+        return getattr(_plot, arg)
+        
+    def swap_gene_isoform():
+        pass
+        #TO DO
+        
+    def __add__():
+        pass
+        #TO DO
+    
+    def __radd__():
+        pass
+        #Maybe TO DO
+    
     def __import_excel(self, filename, type_selected):
         """Only for testing. Users should not use this function directly"""
         if type_selected not in ["gene", "isoform"]:
@@ -833,3 +629,166 @@ class Papillon(Papillon_db):
                 len(self.selected.columns)
             )
 
+class _Plot:
+    """  """
+
+    @staticmethod
+    def _fusion_gene_id(df, what, change_index=False):
+        """Append a "gene/ID" column to the dataframe, and use gene
+        name+id(index) as values, usable or not as index"""
+        # print(df)
+        if what == "gene":
+            if change_index is True:
+                df.set_index('gene_short_name', inplace=True)
+            return df
+        elif what == "isoform":
+            df["gene/ID"] = df['gene_short_name'].map(str) + "   " + df.index
+            if change_index is True:
+                df.set_index("gene/ID", inplace=True)
+                del df['gene_short_name']
+            return df
+
+    def onlyFPKM(self, return_as, **option):
+        """Take a Papillon dataframe and a list of samples, return only FPKM columns.
+
+        return as:
+            "df" - pandas DataFrame
+            "array" - numpy array
+            "gene name" - pandas DataFrame containing gene names"""
+        df=self.pp.selected
+        if isinstance(option.get("extra_df"), pd.DataFrame):
+            df = option.get("extra_df")
+        samples=self.pp.samples
+        if return_as == "df":
+            df = df.loc[:, _FPKM(samples)]
+        elif return_as == "array":
+            df = df.loc[:, _FPKM(samples)].values
+        elif return_as == "gene name":
+            columns = ['gene_short_name'] + _FPKM(samples)
+            df = df.loc[:, columns]
+        else:
+            raise Exception(
+                "Return_as not known. Only 'df','array','gene name'")
+
+        if option.get("remove_FPKM_name") is True:
+            mydic = {}
+            n = len(self.pp.samples)
+            while n != 0:
+                n -= 1
+                mydic[_FPKM(self.pp.samples[n])] = self.pp.samples[n]
+                df.rename(columns=mydic, inplace=True)
+        return df
+    
+    def plot(**parameter):
+        """Deprecated. Use self.lineplot()"""
+        warnings.warn('self.plot() is deprecated. Use self.lineplot() instead.', DeprecationWarning)
+
+    def heatmap(self, z_score=True, col_cluster=False, method="complete", cmap="seismic", export=False, **options):
+        """Generate heatmap using selected genes/isoforms
+        z_score - True/False whether want or not apply z-score normalization
+        col_cluster - True/False whether want or not cluster the samples
+        method - clustering algorithm - default is complete-linkage
+        cmap - map color
+        export - True/False whether want or not export the dataframe of
+                 selected genes
+        **options - all the options accepted by seaborn.clustermap
+        default metric is euclidean.
+        """
+        if len(self.pp.samples) > 10:
+            raise Exception("High-dimensional data. Ronan et al., 2016")
+        print("Number of genes", len(self.pp.selected))
+        if len(self.pp.selected) == 0:
+            return
+        df_heatmap = self.onlyFPKM(return_as="gene name", remove_FPKM_name=True)
+
+        df_heatmap = self._fusion_gene_id(
+            df_heatmap, self.pp.what, change_index=True)
+
+        if z_score is True: 
+            z_score = 0
+        elif z_score is False: 
+            z_score = None
+        small = sns.clustermap(
+            df_heatmap, col_cluster=col_cluster, method=method, cmap=cmap, z_score=z_score, **options)
+        self._export(small, name="small-heatmap", export=export)
+        if len(df_heatmap) < 1000 and len(df_heatmap) > 25:
+            big = sns.clustermap(
+                df_heatmap, col_cluster=col_cluster, method=method, cmap=cmap,
+                z_score=z_score, figsize=((len(self.pp.samples)), int(len(df_heatmap.index) / 4)), **options)
+            self._export(big, name="big-heatmap", export=export)
+        elif len(df_heatmap) > 1000:
+            print("Too many genes for a big heatmap")
+
+    @staticmethod
+    def _z_score(df):
+        """Z-score calculation"""
+        # I could use z_score from scipy, but I don't want add scipy dependence too.
+        # It would be:
+        # from scipy.stats import zscore
+        # zscore(a, axis=1, ddof=1)
+        
+        print("Calculating Z Score...")
+        df_mean = df.mean(axis="columns")
+        df_std = df.std(axis="columns")
+        df = df.sub(df_mean, axis="index")
+        df = df.div(df_std, axis="index")
+        return df
+
+    def lineplot(self, title="", legend=True, z_score=False, export=False, df=None, size=10, ci=None, **option):
+        """
+        LinePlot selected genes expression levels. Max number of genes 200
+
+        title - accept a str as title of the plot
+        legend - True/False show the legend
+        z_score - True/False calculate the z-score normalization
+        export - True/False whether or not export the image
+        df - accept an exernal dataframe, different from self.selected
+        **options - all the options accepted by seaborn.factorplot"""
+
+        if df is None:
+            df = self.pp.selected.copy()
+
+        if z_score is True:
+            df_ = self.onlyFPKM(
+                extra_df=df, return_as="df", remove_FPKM_name=True)
+            df_norm = self._z_score(df_)
+            df_norm["gene_short_name"] = df["gene_short_name"]
+            df_ = df_norm.copy()
+        elif z_score is False:
+            df_ = self.onlyFPKM(
+                extra_df=df, return_as="gene name", remove_FPKM_name=True)
+
+        print("Number of genes to plot: ", len(df_))
+        if len(df_) > 50 and len(df_) < 200:
+            print("Too many genes. Legend not shown")
+            legend = False
+        elif len(df_) >= 200:
+            print("Too many genes. Plot not shown")
+            return
+
+        if self.pp.what == "gene":
+            hue = "gene_short_name"
+            df_ = self._fusion_gene_id(
+                df_, self.pp.what, change_index=False)
+        elif self.pp.what == "isoform":
+            hue = "gene/ID"  # Change this hue name
+            df_ = self._fusion_gene_id(
+                df_, self.pp.what, change_index=True)
+            df_ = df_.reset_index()
+        df = pd.melt(df_, id_vars=[hue], var_name="Sample", value_name="FPKM")
+        g = sns.factorplot(x="Sample", y="FPKM", hue=hue,
+                           data=df, ci=ci, size=size, legend=legend, **option)
+        g.fig.suptitle(title)
+        self._export(g, export=export, name="Plot")
+        return g
+    
+    def _export(self, thing, export, name=None, image_extension=".png"):  # add .pdf?
+        """Manage dataframe or image export parameter."""
+        if export is False: 
+            return
+        elif export is True:
+            _make_folder(self.pp.path)
+            thing.savefig(str(self.pp.path + name + image_extension))
+            print("\nExported as " + name + image_extension)
+        else:
+            raise Exception("export= can be only 'False' or 'True'")

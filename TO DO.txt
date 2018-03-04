@@ -5,7 +5,6 @@
 * plot genes detected/significant as different lines
 * Compare self.selected between two different experiments
 
-* Move plots functions in another py file?
 * Wondering if z_score calc, fusion_gene_id and only_FPKM should be only one function?
 
 * Add Volcano plot

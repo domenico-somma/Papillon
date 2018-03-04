@@ -1,4 +1,4 @@
-Papillon is a python alternative to cummeRbund to read and plot Galaxy
+Papillon is a python alternative to cummeRbund to read and plot cuffdiff/Galaxy
 RNA-seq data.
 
 To start
