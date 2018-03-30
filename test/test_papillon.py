@@ -60,7 +60,7 @@ class papillon_Test(unittest.TestCase):
         comparison_test=['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 
                          'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 
                          'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']
-        self.assertTrue(test.comparison==comparison_test)
+        self.assertTrue(test.comparisons==comparison_test)
         self.assertEqual(len(test.genes_detect),5)
         self.assertEqual(len(test.genes_significant),3)
         self.assertEqual(len(test.isoforms_detect),28)
@@ -78,51 +78,51 @@ class papillon_Test(unittest.TestCase):
         
     def test_get_gene(self):
         sub=test.get_gene()
-        self.assertEqual(len(sub.selected),3)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),3)
+        self.assertEqual(len(sub.df.columns),18)
         
         sub=test.get_gene("IL17RC")
-        self.assertEqual(sub.selected.index[0],"MSTRG.10454")
-        self.assertEqual(len(sub.selected),1)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(sub.df.index[0],"MSTRG.10454")
+        self.assertEqual(len(sub.df),1)
+        self.assertEqual(len(sub.df.columns),18)
 
         sub=test.get_gene(["IL6","CCL15"])
-        self.assertEqual(len(sub.selected),2)
-        self.assertEqual(sub.selected.index[0],"IL6")
-        self.assertEqual(sub.selected.index[1],"CCL15-2")
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),2)
+        self.assertEqual(sub.df.index[0],"IL6")
+        self.assertEqual(sub.df.index[1],"CCL15-2")
+        self.assertEqual(len(sub.df.columns),18)
         
         # Gene-Comparison Test        
         sub=test.get_gene(["IL6","CCL15"], comparison="Sample 1_vs_Sample 2")
-        self.assertEqual(len(sub.selected),1)
-        self.assertEqual(sub.selected.index[0],"IL6")
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),1)
+        self.assertEqual(sub.df.index[0],"IL6")
+        self.assertEqual(len(sub.df.columns),18)
         
         sub=test.get_gene(["IL6","CCL15"], comparison="Sample 3_vs_Sample 4")
-        self.assertEqual(len(sub.selected),1)
-        self.assertEqual(sub.selected.index[0],"CCL15-2")
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),1)
+        self.assertEqual(sub.df.index[0],"CCL15-2")
+        self.assertEqual(len(sub.df.columns),18)
         
         sub=test.get_gene(["IL6","CCL15"], comparison="Sample 2_vs_Sample 3")
-        self.assertEqual(len(sub.selected),0)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),0)
+        self.assertEqual(len(sub.df.columns),18)
         
          # Gene-Comparison-sign Test        
-        sub=test.get_gene(["IL6","CCL15"], comparison="Sample 1_vs_Sample 2", sign=">")
-        self.assertEqual(len(sub.selected),0)
-        self.assertEqual(len(sub.selected.columns),18)
+        sub=test.get_gene(["IL6","CCL15"], comparison="Sample 1_vs_Sample 2", comparison_sign=">")
+        self.assertEqual(len(sub.df),0)
+        self.assertEqual(len(sub.df.columns),18)
         
-        sub=test.get_gene(["IL6","CCL15"], comparison="Sample 1_vs_Sample 2", sign="<")
-        self.assertEqual(len(sub.selected),1)
-        self.assertEqual(sub.selected.index[0],"IL6")
-        self.assertEqual(len(sub.selected.columns),18)
+        sub=test.get_gene(["IL6","CCL15"], comparison="Sample 1_vs_Sample 2", comparison_sign="<")
+        self.assertEqual(len(sub.df),1)
+        self.assertEqual(sub.df.index[0],"IL6")
+        self.assertEqual(len(sub.df.columns),18)
         
         sub=test.get_gene()
-        self.assertEqual(len(sub.selected),3)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),3)
+        self.assertEqual(len(sub.df.columns),18)
         
         with self.assertRaises(Exception):
-            sub=test.get_gene(comparison="Sample 1_vs_Sample 2", sign="Wrong")
+            sub=test.get_gene(comparison="Sample 1_vs_Sample 2", comparison_sign="Wrong")
         with self.assertRaises(Exception):
             sub=test.get_gene(sign=">")
         with self.assertRaises(Exception):
@@ -130,62 +130,62 @@ class papillon_Test(unittest.TestCase):
 
     def test_get_isoform(self):
         sub=test.get_isoform()
-        self.assertEqual(len(sub.selected),5)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),5)
+        self.assertEqual(len(sub.df.columns),18)
         
         sub=test.get_isoform("IL6")
-        self.assertEqual(sub.selected.index[0],"NM_000600.3")
-        self.assertEqual(len(sub.selected),1)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(sub.df.index[0],"NM_000600.3")
+        self.assertEqual(len(sub.df),1)
+        self.assertEqual(len(sub.df.columns),18)
         
         sub=test.get_isoform("CCL15")
-        self.assertEqual(sub.selected.index[0],"NM_032965.4")
-        self.assertEqual(sub.selected.index[1],"NM_032965.4-2")
-        self.assertEqual(len(sub.selected),2)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(sub.df.index[0],"NM_032965.4")
+        self.assertEqual(sub.df.index[1],"NM_032965.4-2")
+        self.assertEqual(len(sub.df),2)
+        self.assertEqual(len(sub.df.columns),18)
 
         sub=test.get_isoform(["IL6","CD44"])
-        self.assertEqual(len(sub.selected),3)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),3)
+        self.assertEqual(len(sub.df.columns),18)
         
         sub=test.get_isoform(["IL6","CCL15"])
-        self.assertEqual(len(sub.selected),3)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),3)
+        self.assertEqual(len(sub.df.columns),18)
         
         # Isoform-Comparison Test        
         sub=test.get_isoform(["IL6","CCL15"], comparison="Sample 1_vs_Sample 2")
-        self.assertEqual(len(sub.selected),1)
-        self.assertEqual(sub.selected.index[0],"NM_000600.3")
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),1)
+        self.assertEqual(sub.df.index[0],"NM_000600.3")
+        self.assertEqual(len(sub.df.columns),18)
         
         sub=test.get_isoform(["IL6","CCL15"], comparison="Sample 3_vs_Sample 4")
-        self.assertEqual(len(sub.selected),2)
-        self.assertEqual(sub.selected.index[0],"NM_032965.4")
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),2)
+        self.assertEqual(sub.df.index[0],"NM_032965.4")
+        self.assertEqual(len(sub.df.columns),18)
         
         sub=test.get_isoform(["IL6","CCL15"], comparison="Sample 2_vs_Sample 4")
-        self.assertEqual(len(sub.selected),1)
-        self.assertEqual(sub.selected.index[0],"NM_032965.4-2")
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),1)
+        self.assertEqual(sub.df.index[0],"NM_032965.4-2")
+        self.assertEqual(len(sub.df.columns),18)
         
         sub=test.get_isoform(["IL6","CCL15"], comparison="Sample 2_vs_Sample 3")
-        self.assertEqual(len(sub.selected),0)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),0)
+        self.assertEqual(len(sub.df.columns),18)
         
         # Isoform-Comparison-sign Test        
-        sub=test.get_isoform(["IL6","CCL15"], comparison="Sample 1_vs_Sample 2", sign=">")
-        self.assertEqual(len(sub.selected),0)
-        self.assertEqual(len(sub.selected.columns),18)
+        sub=test.get_isoform(["IL6","CCL15"], comparison="Sample 1_vs_Sample 2", comparison_sign=">")
+        self.assertEqual(len(sub.df),0)
+        self.assertEqual(len(sub.df.columns),18)
         
-        sub=test.get_isoform(["IL6","CCL15"], comparison="Sample 1_vs_Sample 2", sign="<")
-        self.assertEqual(len(sub.selected),1)
-        self.assertEqual(sub.selected.index[0],"NM_000600.3")
-        self.assertEqual(len(sub.selected.columns),18)
+        sub=test.get_isoform(["IL6","CCL15"], comparison="Sample 1_vs_Sample 2", comparison_sign="<")
+        self.assertEqual(len(sub.df),1)
+        self.assertEqual(sub.df.index[0],"NM_000600.3")
+        self.assertEqual(len(sub.df.columns),18)
         
         # Final        
         sub=test.get_isoform()
-        self.assertEqual(len(sub.selected),5)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),5)
+        self.assertEqual(len(sub.df.columns),18)
     
     def test_onlyFPKM(self):
         test=pp.read_folder(path)
@@ -214,19 +214,19 @@ class papillon_Test(unittest.TestCase):
         
         # making extra_df
         sub=test.get_isoform()
-        extra_df=sub.selected.iloc[:4,2:6].T.copy()
-        extra_df=pd.DataFrame(data=extra_df.values, index=sub.selected.index[:4], columns=sub.selected.columns[2:6])
-        extra_df['gene_short_name']=sub.selected['gene_short_name'][:4]        
+        extra_df=sub.df.iloc[:4,2:6].T.copy()
+        extra_df=pd.DataFrame(data=extra_df.values, index=sub.df.index[:4], columns=sub.df.columns[2:6])
+        extra_df['gene_short_name']=sub.df['gene_short_name'][:4]        
 
         # testing extra_df
-        df=sub.onlyFPKM("df",extra_df=extra_df)
+        df=sub.plot.onlyFPKM(extra_df,sub.samples,"df")
         self.assertTrue(type(df)==pd.DataFrame)
         self.assertEqual(len(df),4)
         self.assertEqual(len(df.columns),4)
         self.assertEqual(df.index[0],"NM_000600.3")
         self.assertEqual(df.index[-1],"NM_032965.4")
         
-        df=sub.onlyFPKM("gene name",extra_df=extra_df)
+        df=sub.plot.onlyFPKM(extra_df,sub.samples,"gene name")
         self.assertTrue(type(df)==pd.DataFrame)
         self.assertEqual(len(df),4)
         self.assertEqual(len(df.columns),5)
@@ -235,7 +235,7 @@ class papillon_Test(unittest.TestCase):
         self.assertEqual(df.index[-1],"NM_032965.4")
         self.assertEqual(df["gene_short_name"][-1],"CCL15")
         
-        df=sub.onlyFPKM("array",extra_df=extra_df)
+        df=sub.plot.onlyFPKM(extra_df,sub.samples,"array")
         self.assertTrue(type(df)==numpy.ndarray)
         self.assertEqual(len(df),4)
         self.assertEqual(list(df[0]),[0.0, 0.0, 4.0, 0.0])
@@ -244,7 +244,7 @@ class papillon_Test(unittest.TestCase):
         self.assertAlmostEqual(a[0],b[0], places=0)
         
         # testing remove_FPKM_name
-        df=sub.onlyFPKM("df",extra_df=extra_df, remove_FPKM_name=True)
+        df=sub.plot.onlyFPKM(extra_df,sub.samples,"df", remove_FPKM_name=True)
         self.assertTrue(type(df)==pd.DataFrame)
         self.assertEqual(len(df),4)
         self.assertEqual(len(df.columns),4)
@@ -252,7 +252,7 @@ class papillon_Test(unittest.TestCase):
         self.assertEqual(df.index[0],"NM_000600.3")
         self.assertEqual(df.index[-1],"NM_032965.4")
         
-        df=sub.onlyFPKM("gene name",extra_df=extra_df, remove_FPKM_name=True)
+        df=sub.plot.onlyFPKM(extra_df,sub.samples,"gene name", remove_FPKM_name=True)
         self.assertTrue(type(df)==pd.DataFrame)
         self.assertEqual(len(df),4)
         self.assertEqual(len(df.columns),5)
@@ -264,16 +264,16 @@ class papillon_Test(unittest.TestCase):
         
         # Final        
         sub=test.get_isoform()
-        self.assertEqual(len(sub.selected),5)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),5)
+        self.assertEqual(len(sub.df.columns),18)
             
     def test_z_score(self):
         sub=test.get_isoform()
         df=sub.onlyFPKM("df")
         df1=zscore(df, axis=1, ddof=1)
-        df2=sub._z_score(df)
-        df2=sub.onlyFPKM("array",extra_df=df2)
-        self.assertAlmostEqual(df1.all(), df2.all(), places=0)
+        df2=sub.plot._z_score(df)
+        df2=sub.plot.onlyFPKM(df2,sub.samples,"array")
+        self.assertTrue(numpy.allclose(df1, df2))
     
     def test_search(self):
         search_result=test.search(word="IL6",where="genes_detected", how="list")
@@ -309,31 +309,31 @@ class papillon_Test(unittest.TestCase):
         self.assertEqual(len(search_result.columns),18)
         self.assertEqual(search_result.index[0],"IL6")
         
-        search_result=test.search(word="CCL15",where="genes_significant", how="selected")
-        self.assertEqual(len(test.selected),1)
-        self.assertEqual(len(test.selected.columns),18)
-        self.assertEqual(test.selected.index[0],"CCL15-2")
+#        search_result=test.search(word="CCL15",where="genes_significant", how="selected")
+#        self.assertEqual(len(test.df),1)
+#        self.assertEqual(len(test.df.columns),18)
+#        self.assertEqual(test.df.index[0],"CCL15-2")
         
-        search_result=test.search(word="CD44",where="isoforms_significant", how="selected")
-        self.assertEqual(len(test.selected),2)
-        self.assertEqual(len(test.selected.columns),18)
-        self.assertEqual(test.selected.index[0],"NM_000610.3")
-        self.assertEqual(test.selected.index[-1],"NM_001001389.1")
+#        search_result=test.search(word="CD44",where="isoforms_significant", how="selected")
+#        self.assertEqual(len(test.df),2)
+#        self.assertEqual(len(test.df.columns),18)
+#        self.assertEqual(test.df.index[0],"NM_000610.3")
+#        self.assertEqual(test.df.index[-1],"NM_001001389.1")
         
         sub=test.get_isoform()
-        self.assertEqual(len(sub.selected),5)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),5)
+        self.assertEqual(len(sub.df.columns),18)
 
         sub=test.get_gene()
-        self.assertEqual(len(sub.selected),3)
-        self.assertEqual(len(sub.selected.columns),18)
+        self.assertEqual(len(sub.df),3)
+        self.assertEqual(len(sub.df.columns),18)
     
     def test_fusion_gene_id(self):
         sub=test.get_isoform()
-        m=len(sub.selected.columns)
-        df=sub.selected.copy()
+        m=len(sub.df.columns)
+        df=sub.df.copy()
         
-        df2=sub._fusion_gene_id(df, sub.what, change_index=False)
+        df2=sub.plot._fusion_gene_id(df, sub.what, change_index=False)
         self.assertEqual(len(df2["gene/ID"]),5)
         self.assertEqual(len(df2.columns),19)
         self.assertEqual(df2["gene/ID"][0],"IL6   NM_000600.3")
@@ -343,31 +343,31 @@ class papillon_Test(unittest.TestCase):
         self.assertEqual(df2["gene_short_name"][0],"IL6")
         self.assertEqual(df2["gene_short_name"][-1],"CCL15")
         
-        df2=sub._fusion_gene_id(df, sub.what, change_index=True)
+        df2=sub.plot._fusion_gene_id(df, sub.what, change_index=True)
         self.assertEqual(len(df2),5)
         self.assertEqual(len(df2.columns),17)
         self.assertEqual(df2.index[0],"IL6   NM_000600.3")
         self.assertEqual(df2.index[-1],"CCL15   NM_032965.4-2")
         
         sub=test.get_gene()
-        df=sub.selected.copy()
-        df2=sub._fusion_gene_id(df, sub.what, change_index=False)       
+        df=sub.df.copy()
+        df2=sub.plot._fusion_gene_id(df, sub.what, change_index=False)       
         self.assertEqual(len(df2),3)
         self.assertEqual(len(df2.columns),18)
         self.assertEqual(df2.index[1],"MSTRG.10454")
         self.assertEqual(df2.index[-1],"CCL15-2")
         
-        df2=sub._fusion_gene_id(df, sub.what, change_index=True)
+        df2=sub.plot._fusion_gene_id(df, sub.what, change_index=True)
         self.assertEqual(len(df2),3)
         self.assertEqual(len(df2.columns),17)
         self.assertEqual(df2.index[0],"IL6")
         self.assertEqual(df2.index[-1],"CCL15")
         
-        n=len(sub.selected.columns)
+        n=len(sub.df.columns)
         self.assertTrue(m==n)
 
     def test_comparison(self):
-        a,b,c=test._compare()
+        a,b,c=test.Manipulate._compare(test)
         self.assertEqual(a,{'IL17RC'})
         self.assertEqual(b,{'CD44'})
         self.assertEqual(c,2)
@@ -376,7 +376,7 @@ class papillon_Test(unittest.TestCase):
         def drop(comp):
             test2=pp.read_folder(path,drop_comparison=comp)
             test3=pp.read_folder(path)
-            test3.dropComparison(comp)
+            test3.drop_comparison(comp)
             df1=test2.genes_significant.all()
             df2=test3.genes_significant.all()
             self.assertTrue(df1.all()==df2.all())
@@ -384,9 +384,9 @@ class papillon_Test(unittest.TestCase):
         def multidrop(comp):
             test2=pp.read_folder(path)
             test3=pp.read_folder(path)
-            test2.dropComparison(comp)
+            test2.drop_comparison(comp)
             for c in comp:
-                test3.dropComparison(c)
+                test3.drop_comparison(c)
             df1=test2.genes_significant.all()
             df2=test3.genes_significant.all()
             self.assertTrue(df1.all()==df2.all())
@@ -406,7 +406,7 @@ class papillon_Test(unittest.TestCase):
 
         test2=pp.read_folder(path)
         with self.assertRaises(Exception):
-            test2.dropComparison("Wrong")
+            test2.drop_comparison("Wrong")
         del test2
     
     def test_change_samples_order(self):
@@ -415,7 +415,7 @@ class papillon_Test(unittest.TestCase):
         samples_test=["Sample 4","Sample 3","Sample 2","Sample 1"]
         self.assertTrue(test.samples==samples_test)
         comparison_test=['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']
-        self.assertTrue(test.comparison==comparison_test)
+        self.assertTrue(test.comparisons==comparison_test)
         self.assertEqual(len(test.genes_detect),5)
         self.assertEqual(len(test.genes_significant),3)
         self.assertEqual(len(test.isoforms_detect),28)
@@ -444,21 +444,21 @@ class papillon_Test(unittest.TestCase):
                 
             if z_score == True:
                 df_ = sub.onlyFPKM(return_as="df",remove_FPKM_name=True)
-                df_norm = sub._z_score(df_)
-                df_norm["gene_short_name"] = sub.selected["gene_short_name"]
+                df_norm = sub.plot._z_score(df_)
+                df_norm["gene_short_name"] = sub.df["gene_short_name"]
                 df_ = df_norm.copy()
             elif z_score==False:        
                 df_ = sub.onlyFPKM(return_as="gene name",remove_FPKM_name=True)
             
             if type_sel == "gene":
                 hue = "gene_short_name"
-                df_ = sub._fusion_gene_id(df_, type_sel, change_index=False)
+                df_ = sub.plot._fusion_gene_id(df_, type_sel, change_index=False)
             elif type_sel == "isoform":
                 hue = "gene/ID"
-                df_ = sub._fusion_gene_id(df_, type_sel, change_index=True)
+                df_ = sub.plot._fusion_gene_id(df_, type_sel, change_index=True)
                 df_ = df_.reset_index()
             
-#            df_ = test._fusion_gene_id(df_, type_sel, change_index=False)
+#            df_ = test.plot._fusion_gene_id(df_, type_sel, change_index=False)
             
             df = pd.melt(df_, id_vars=hue, var_name="Sample", value_name="FPKM")
             g = sns.factorplot(x="Sample", y="FPKM", hue=hue,
@@ -502,7 +502,7 @@ class papillon_Test(unittest.TestCase):
             elif type_sel == "isoform":
                 sub=test.get_isoform()
             df_heatmap = sub.onlyFPKM(return_as="gene name",remove_FPKM_name=True)
-            df_heatmap = sub._fusion_gene_id(df_heatmap, type_sel, change_index=True)
+            df_heatmap = sub.plot._fusion_gene_id(df_heatmap, type_sel, change_index=True)
             im1 = sns.clustermap(df_heatmap, col_cluster=False, method="complete", cmap="seismic", z_score=z_score)
             im1.savefig(str(test.path + "test.png"))
               
@@ -517,7 +517,7 @@ class papillon_Test(unittest.TestCase):
         sub=test.get_gene()
         
         heatmap_maker(0,"gene")        
-        sub.heatmap(export=True)        
+        sub.heatmap(z_score=True,export=True)        
         image_check()
         
         heatmap_maker(None,"gene")        
@@ -527,7 +527,7 @@ class papillon_Test(unittest.TestCase):
         sub=test.get_isoform()
 
         heatmap_maker(0,"isoform")        
-        sub.heatmap(export=True)        
+        sub.heatmap(z_score=True,export=True)        
         image_check()
         
         heatmap_maker(None,"isoform")        
