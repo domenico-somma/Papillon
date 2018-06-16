@@ -1,5 +1,8 @@
 v 0.2.0, -18 -- Major changes:
-Now you can keep the genes subselection in a variable
+Now you can keep the genes/isoforms subselection in a variable
+Add or compare two subselections
+You can select either gene/isoform significant expressed for at least one condition or not significant at all.
+Plot gene/isoform significant for at least one condition or not significant with continuous and dashed line.
 self.read_db() deprecated
 self.plot() deprecated
 Add check if papillon folder is removed
