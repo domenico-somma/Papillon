@@ -1,5 +1,5 @@
 * Add Confidence Interval to plot.
-* log10 transformation FPKM values
+* log2 transformation FPKM values
 * Add search isoforms ID option
 * Add barplot
 * plot genes detected/significant as different lines
@@ -15,3 +15,6 @@
 * show replicates on lineplot
 * Box plot of FPKM distributions for individual conditions #see cummeRbund
 * Density plot of individual conditions #see cummeRbund
+
+* Add DESEQ2 support
+* Add kallisto/sleuth support 

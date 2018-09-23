@@ -1,4 +1,5 @@
 v 0.2.0, -18 -- Major changes:
+Now seaborn 0.23 required
 Now you can keep the genes/isoforms subselection in a variable
 Add or compare two subselections
 You can select either gene/isoform significant expressed for at least one condition or not significant at all.

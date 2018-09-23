@@ -68,7 +68,7 @@ class papillon_Test(unittest.TestCase):
         self.assertTrue(a==c and c==24)
         print_test=pp.read_folder(path)
         printable="Samples: ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']\nComparison: ['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']\nGenes Detected: 5\nGenes differential expressed: 3\nIsoform Detected: 28\nIsoform differential expressed: 5\n"
-        print(print_test.__str__(),"\n",printable)
+#        print(print_test.__str__(),"\n",printable)
         self.assertTrue(print_test.__str__()==printable)
         del print_test
         
@@ -693,7 +693,7 @@ class papillon_Test(unittest.TestCase):
             im2=Image.open('Test_files/Papillon/Plot.png')
             hash1 = imagehash.average_hash(im1)
             hash2 = imagehash.average_hash(im2)
-            print(hash1,hash2)
+#            print(hash1,hash2)
             self.assertEqual(hash1,hash2)
         
         sub=test.get_gene()
@@ -734,7 +734,7 @@ class papillon_Test(unittest.TestCase):
             im2=Image.open('Test_files/Papillon/small-heatmap.png')
             hash1 = imagehash.average_hash(im1)
             hash2 = imagehash.average_hash(im2)
-            print(hash1,hash2)
+#            print(hash1,hash2)
             self.assertEqual(hash1,hash2)
         
         sub=test.get_gene()
@@ -756,6 +756,105 @@ class papillon_Test(unittest.TestCase):
         heatmap_maker(None,"isoform")        
         sub.heatmap(z_score=False,export=True)        
         image_check()
+    
+    def test_print(self):
+        test=pp.read_folder(path)
+        sub=test.get_gene()
+        printable2="Type of selection: gene\nNumber of gene selected: 3\nSamples: ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4']\nComparison selected: ['Sample 1_vs_Sample 2', 'Sample 1_vs_Sample 3', 'Sample 1_vs_Sample 4', 'Sample 2_vs_Sample 3', 'Sample 2_vs_Sample 4', 'Sample 3_vs_Sample 4']\n"
+        self.assertTrue(sub.__str__()==printable2)
+        
+    def test_add(self):
+        test=pp.read_folder(path)
+        # test isoform
+        sub1=test.get_isoform("IL6")
+        sub2=test.get_isoform("CD44")
+        sub=sub1+sub2
+        self.assertEqual(len(sub.df),3)
+        self.assertEqual(len(sub.df.columns),len(sub1.df.columns))
+        sub3=test.get_isoform("CCL15")
+        sub=sum([sub1,sub2,sub3])
+        self.assertEqual(len(sub.df),5)
+        self.assertEqual(len(sub.df.columns),len(sub1.df.columns))
+        sub4=test.get_isoform("IL6")
+        sub=sub+sub4
+        self.assertEqual(len(sub.df),5)
+        self.assertEqual(len(sub.df.columns),len(sub1.df.columns))
+        
+        # test genes
+        sub_g1=test.get_gene("IL6")
+        sub_g2=test.get_gene("IL17RC")
+        sub=sub_g1+sub_g2
+        self.assertEqual(len(sub.df),2)
+        self.assertEqual(len(sub.df.columns),len(sub_g1.df.columns))
+        sub_g3=test.get_gene("CCL15")
+        sub=sum([sub_g1,sub_g2,sub_g3])
+        self.assertEqual(len(sub.df),3)
+        self.assertEqual(len(sub.df.columns),len(sub_g1.df.columns))
+        sub_g4=test.get_gene("IL17RC")
+        sub=sub+sub_g4
+        self.assertEqual(len(sub.df),3)
+        self.assertEqual(len(sub.df.columns),len(sub1.df.columns))
+        
+        with self.assertRaises(Exception):
+            sub=sub1+sub_g2
+        with self.assertRaises(Exception):    
+            sub_g1=test.get_gene("IL6")
+            sub_g2=test.get_gene(comparison="Sample 3_vs_Sample 4")
+            sub=sub_g1+sub_g2
+            
+    def test_list_search(self):
+        test=pp.read_folder(path)
+        sub=test.get_isoform()
+        sub_search=sub.search("sfd")
+        self.assertEqual(len(sub_search.df),0)
+        sub_search=sub.search("00")
+        self.assertEqual(len(sub_search.df),3)
+        self.assertEqual(len(sub.df.columns),len(sub_search.df.columns))
+        
+        sub=test.get_gene()
+        sub_search=sub.search("sfd")
+        self.assertEqual(len(sub_search.df),0)
+        sub_search=sub.search("il")
+        self.assertEqual(len(sub_search.df),2)
+        self.assertEqual(len(sub.df.columns),len(sub_search.df.columns))
+
+    def test_sub_select(self):
+        test=pp.read_folder(path)
+        sub=test.get_isoform()
+        a=sub.select("IL6")
+        self.assertEqual(len(a.df),1)
+        self.assertEqual(len(a.df.columns),len(sub.df.columns))
+        a=sub.select(["IL6"])
+        self.assertEqual(len(a.df),1)
+        self.assertEqual(len(a.df.columns),len(sub.df.columns))
+        a=sub.select(["IL6","wrong"])
+        self.assertEqual(len(a.df),1)
+        self.assertEqual(len(a.df.columns),len(sub.df.columns))
+        a=sub.select(["IL6","CCL15"])
+        self.assertEqual(len(a.df),3)
+        self.assertEqual(len(a.df.columns),len(sub.df.columns))
+        b=test.get_isoform(["IL6","CCL15"])
+        a=sub.select(b)
+        self.assertEqual(len(a.df),3)
+        self.assertEqual(len(a.df.columns),len(sub.df.columns))
+        
+        sub=test.get_gene()
+        a=sub.select("IL6")
+        self.assertEqual(len(a.df),1)
+        self.assertEqual(len(a.df.columns),len(sub.df.columns))
+        a=sub.select(["IL6"])
+        self.assertEqual(len(a.df),1)
+        self.assertEqual(len(a.df.columns),len(sub.df.columns))
+        a=sub.select(["IL6","wrong"])
+        self.assertEqual(len(a.df),1)
+        self.assertEqual(len(a.df.columns),len(sub.df.columns))
+        a=sub.select(["IL6","CCL15"])
+        self.assertEqual(len(a.df),2)
+        self.assertEqual(len(a.df.columns),len(sub.df.columns))
+        b=test.get_isoform(["IL6","CCL15"])
+        a=sub.select(b)
+        self.assertEqual(len(a.df),2)
+        self.assertEqual(len(a.df.columns),len(sub.df.columns))
 
 if __name__ == '__main__':
     unittest.main()
