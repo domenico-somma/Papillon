@@ -1,4 +1,4 @@
-v 0.2.0, -18 -- Major changes:
+v 0.2.0, 24-9-18 -- Major changes:
 Now seaborn 0.23 required
 Now you can keep the genes/isoforms subselection in a variable
 Add or compare two subselections
