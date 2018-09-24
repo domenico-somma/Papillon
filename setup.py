@@ -8,7 +8,7 @@ from setuptools import setup
 
 setup(
     name='papillon',
-    version='0.1.1',
+    version='0.2.0',
     py_modules=['papillon'],
     description='A Python module to read and plot (cuffdiff) Galaxy RNA-seq data',
     author='Domenico Somma',
@@ -17,7 +17,7 @@ setup(
     url='https://github.com/domenico-somma/Papillon/',
     python_requires='>=3.3, <4',
     install_requires=[
-        "pandas >= 0.17.1",
+        "pandas >= 0.23",
         "Seaborn >= 0.8.1",
     ],
 )

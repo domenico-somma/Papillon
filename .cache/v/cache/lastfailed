@@ -1,0 +1,4 @@
+{
+  "test/test_papillon.py::papillon_Test::test_read_folder": true,
+  "test/test_papillon.py::papillon_Test::test_selected_exist": true
+}

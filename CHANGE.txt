@@ -1,3 +1,14 @@
+v 0.2.0, 24-9-18 -- Major changes:
+Now Pandas 0.23 required
+Now you can keep the genes/isoforms selection in a variable
+Add or compare two subselections
+You can select either gene/isoform significant expressed for at least one condition or not significant at all.
+Plot gene/isoform significant for at least one condition or not significant with continuous and dashed line.
+self.read_db() deprecated
+self.plot() deprecated
+Add check if papillon folder is removed
+Improved code (Single Responsibility Principle)
+
 v 0.1.1, 21-01-18 -- Minor changes: 
 add python 3 restriction, add the function to load directly the cuffdiff files, changed function names: self.read_db() -> self.read_folder() and self.plot() -> self.lineplot(),improved code quality (tried to follow the single responsibility principle), removed some potential bugs. 
 
