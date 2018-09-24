@@ -1,6 +1,6 @@
 v 0.2.0, 24-9-18 -- Major changes:
-Now seaborn 0.23 required
-Now you can keep the genes/isoforms subselection in a variable
+Now Pandas 0.23 required
+Now you can keep the genes/isoforms selection in a variable
 Add or compare two subselections
 You can select either gene/isoform significant expressed for at least one condition or not significant at all.
 Plot gene/isoform significant for at least one condition or not significant with continuous and dashed line.
